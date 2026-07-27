@@ -31,9 +31,10 @@
       </Card>
 </div>
 <h2 class="text-xl my-3 font-bold text-gray-300"> Available Packages</h2>
+<pre>{data.subscription}</pre>
 <div class="grid md:grid-cols-3 gap-4">
 {#each data.subscription as plan }
-<pre>{data.subscription}</pre>
+
 <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm">
     <CardHeader>
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="gold" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
