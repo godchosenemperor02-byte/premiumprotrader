@@ -11,10 +11,16 @@
     { label: "Capital", value: data.profile.capital, change: "+91.9%", up: true },
   ]);
   
-  // Signal strength state - fluctuates between 50-100
-  let signalStrength = $state({
+  // Market sentiment state - fluctuates between 50-100
+  let marketSentiment = $state({
     strength: 75,
     status: "Strong",
+  });
+
+  // Signal strength state - reflects user's signal column value
+  let signalStrength = $state({
+    strength: data.profile.signal || 0,
+    status: "Weak",
   });
   
   // Function to generate random change
@@ -27,8 +33,8 @@
     };
   };
   
-  // Function to generate signal strength between 50-100
-  const generateSignalStrength = () => {
+  // Function to generate market sentiment between 50-100
+  const generateMarketSentiment = () => {
     const strength = Math.floor(Math.random() * 51) + 50; // 50-100
     let status = "Weak";
     if (strength >= 75) status = "Strong";
@@ -36,8 +42,16 @@
     
     return { strength, status };
   };
+
+  // Function to get status based on signal strength
+  const getSignalStatus = (strength) => {
+    if (strength >= 75) return "Strong";
+    if (strength >= 60) return "Good";
+    if (strength >= 40) return "Fair";
+    return "Weak";
+  };
   
-  // Update changes every 2 seconds
+  // Update market sentiment every 2 seconds
   onMount(() => {
     const interval = setInterval(() => {
       stats = stats.map(stat => ({
@@ -46,14 +60,23 @@
       }));
     }, 2000); // Update every 2 seconds
     
-    // Update signal strength every 1.5 seconds
-    const signalInterval = setInterval(() => {
-      signalStrength = generateSignalStrength();
+    // Update market sentiment every 1.5 seconds
+    const sentimentInterval = setInterval(() => {
+      marketSentiment = generateMarketSentiment();
     }, 1500);
+
+    // Update signal strength status based on user's signal value
+    const signalStatusInterval = setInterval(() => {
+      signalStrength = {
+        ...signalStrength,
+        status: getSignalStatus(signalStrength.strength)
+      };
+    }, 1000);
     
     return () => {
       clearInterval(interval);
-      clearInterval(signalInterval);
+      clearInterval(sentimentInterval);
+      clearInterval(signalStatusInterval);
     };
   });
 
@@ -75,7 +98,28 @@
   };
 </script>
 <div class="space-y-8">
-  <!-- Signal Strength Bar at Top -->
+  <!-- Market Sentiment Bar -->
+  <div class="w-full">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-bold uppercase tracking-wider text-[#8e90a0]">Market Sentiment</span>
+      <div class="flex items-center gap-2">
+        <span class="text-lg font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">
+          {marketSentiment.strength}%
+        </span>
+        <span class={`text-xs font-semibold ${getStrengthTextColor(marketSentiment.strength)}`}>
+          {marketSentiment.status}
+        </span>
+      </div>
+    </div>
+    <div class="w-full h-2 bg-[#1e293b] rounded-full overflow-hidden border border-[#1e90ff]/10">
+      <div
+        class="h-full rounded-full bg-gradient-to-r {getStrengthColor(marketSentiment.strength)} transition-all duration-500 ease-out shadow-lg"
+        style="width: {marketSentiment.strength}%;"
+      ></div>
+    </div>
+  </div>
+
+  <!-- Signal Strength Bar -->
   <div class="w-full">
     <div class="flex items-center justify-between mb-2">
       <span class="text-sm font-bold uppercase tracking-wider text-[#8e90a0]">Signal Strength</span>
@@ -372,6 +416,9 @@
 
 <style>
   :global(body) {
+    --sentiment-strong: rgb(34, 197, 94);
+    --sentiment-good: rgb(234, 179, 8);
+    --sentiment-weak: rgb(249, 115, 22);
     --signal-strong: rgb(34, 197, 94);
     --signal-good: rgb(234, 179, 8);
     --signal-weak: rgb(249, 115, 22);
