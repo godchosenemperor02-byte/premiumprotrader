@@ -29,11 +29,11 @@ export const load = async ({ locals: { supabase, getSession } }) => {
      , // or whatever your foreign key is
 
     supabase
-      .from('subscription')
+      .from('account_plan')
       .select('*')
       ,
     supabase
-      .from('account_plan')
+      .from('subscription')
       .select('*')
       
   ]);
