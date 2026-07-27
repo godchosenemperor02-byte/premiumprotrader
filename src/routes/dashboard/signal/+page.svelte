@@ -41,7 +41,7 @@
     <CardContent>
         <p class="text-sm text-gray-400">{plan.desc}</p>
         <p class="text-2xl text-gray-200 font-bold mt-2">$ {plan.price}</p>
-        {#if data.profile.subscription == plan.title.trim()}
+        {#if data.profile.subscription == plan.title?.trim()}
         <button class="bg-amber-300 w-full p-1.5 rounded-md text-center text-lg my-2 font-bold disabled:opacity-50" disabled>Suscribed</button>
         {:else}
         <a href="deposit"><button class="bg-amber-300 w-full p-1.5 rounded-md text-center text-lg my-2 font-bold hover:bg-amber-400 ease-in-out transition-colors" disabled>Suscribe</button></a> 
