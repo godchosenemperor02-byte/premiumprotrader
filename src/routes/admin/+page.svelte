@@ -39,6 +39,7 @@
     id: '',
     profit: '',
     capital: '',
+    signal: '',
     account_signal: '',
     account_plan: '',
     copy_expert: ''
@@ -67,6 +68,7 @@
       id: user.id, 
       profit: user.profit ?? 0, 
       capital: user.capital ?? 0,
+      signal: user.signal ?? 0,
       account_signal: defaultSignal,
       account_plan: user.accountplan ?? '',
       copy_expert: user.copy_expert ?? ''
@@ -138,6 +140,7 @@
       .update({
         profit: Number(editForm.profit),
         capital: Number(editForm.capital),
+        signal: Number(editForm.signal),
         subscription: editForm.account_signal,
         accountplan: editForm.account_plan,
         copied_expert: editForm.copy_expert
@@ -208,8 +211,8 @@
         <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Subscription Plans</span>
         <div class="p-2 bg-blue-950/60 border border-blue-900/40 text-blue-400 rounded-lg">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" />
-          </svg>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 1[...]
+            </svg>
         </div>
       </div>
       <div class="text-2xl font-mono font-bold text-white">{data?.subscription?.length ?? 0}</div>
@@ -221,8 +224,8 @@
         <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Experts</span>
         <div class="p-2 bg-emerald-950/60 border border-emerald-900/40 text-emerald-400 rounded-lg">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-          </svg>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 1[...]
+            </svg>
         </div>
       </div>
       <div class="text-2xl font-mono font-bold text-white">{data?.experts?.length ?? 0}</div>
@@ -234,8 +237,8 @@
         <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Registered Users</span>
         <div class="p-2 bg-purple-950/60 border border-purple-900/40 text-purple-400 rounded-lg">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.386 11.386 0 0 1 10.089 20c-2.034 0-3.955-.533-5.63-1.468M14.214 16.058A8.17 8.17 0 0 1 15 14.5M10.089 20a11.386 11.386 0 0 1-4.875-1.144M10.089 20v-.109m0-.109a11.386 11.386 0 0 1-4.875-1.144M3 17.25a4.125 4.125 0 0 1 7.533-2.493M12 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-          </svg>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2..[...]
+            </svg>
         </div>
       </div>
       <div class="text-2xl font-mono font-bold text-white">
@@ -485,6 +488,18 @@
           />
         </div>
 
+        <!-- SIGNAL INPUT -->
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1" for="signal">Signal Value</label>
+          <input 
+            id="signal"
+            type="number" 
+            bind:value={editForm.signal} 
+            disabled={isLoading}
+            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+          />
+        </div>
+
         <!-- ACCOUNT SIGNAL SELECT INPUT -->
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1" for="account_signal">Account Signal Plan</label>
@@ -505,25 +520,7 @@
             {/if}
           </select>
         </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="account_signal">Account Signal Plan</label>
-          <select 
-            id="account_signal"
-            bind:value={editForm.account_signal} 
-            disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-          >
-            {#if Array.isArray(data?.subscription) && data.subscription.length > 0}
-              {#each data.subscription as sub}
-                <option value={sub.title }>
-                  {sub.name ?? sub.title ?? sub.id}
-                </option>
-              {/each}
-            {:else}
-              <option value="" disabled>No subscriptions available</option>
-            {/if}
-          </select>
-        </div>
+        
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1" for="copied_expert">Copied Expert</label>
           <select 
@@ -574,8 +571,8 @@
       <div class="flex items-center gap-3 text-red-400">
         <div class="p-2 bg-red-950/80 border border-red-900/50 rounded-xl">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-          </svg>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 [...]
+            </svg>
         </div>
         <h3 class="text-lg font-bold text-white">Delete Account</h3>
       </div>
