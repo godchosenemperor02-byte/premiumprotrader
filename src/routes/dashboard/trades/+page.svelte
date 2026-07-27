@@ -7,11 +7,16 @@
 	let amount = $state('');
 	let stopLoss = $state('');
 	let takeProfit = $state('');
+	let leverage = $state('1x');
+	let duration = $state('1h');
 	let showAlert = $state(false);
 	let alertMessage = $state('');
 	let isSuccess = $state(true);
 
 	let timer;
+
+	const leverageOptions = ['1x', '2x', '5x', '10x', '25x', '50x', '100x'];
+	const durationOptions = ['5m', '15m', '30m', '1h', '4h', '1d', '1w'];
 
 	const handleMax = () => {
 		amount = data.profile.balance;
@@ -27,7 +32,8 @@
 			alertMessage = "Your balance is too low for this order.";
 			isSuccess = false;
 		} else {
-			alertMessage = `Your ${type.toUpperCase()} trade for $${tradeAmount} has been placed. Contact your account manager for details.`;
+			const leverageValue = leverage.replace('x', '');
+			alertMessage = `Your ${type.toUpperCase()} trade for $${tradeAmount} with ${leverage} leverage for ${duration} has been placed. Contact your account manager for details.`;
 			isSuccess = true;
 		}
 
@@ -117,7 +123,7 @@
 			<div class="flex justify-between items-center">
 				<div>
 					<CardTitle class="text-white font-bold text-xl tracking-tight mb-1">Quick Trade Execution</CardTitle>
-					<p class="text-xs text-[#8e90a0]">Execute trades with precision risk management</p>
+					<p class="text-xs text-[#8e90a0]">Execute trades with precision risk management and advanced options</p>
 				</div>
 				<div class="flex items-center gap-2">
 					<span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50"></span>
@@ -168,6 +174,37 @@
 							MAX
 						</button>
 					</div>
+				</div>
+			</div>
+
+			<!-- Leverage and Duration Controls -->
+			<div class="grid grid-cols-2 gap-4">
+				<!-- Leverage Selector -->
+				<div class="space-y-2">
+					<label for="leverage" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Leverage</label>
+					<select
+						id="leverage"
+						bind:value={leverage}
+						class="w-full bg-[#0a0e1a]/80 border border-yellow-500/20 rounded-lg px-3 py-2.5 text-xs focus:outline-none focus:border-yellow-500/60 focus:shadow-[0_0_12px_rgba(234,179,8,0.15)] transition-all text-white font-semibold placeholder:text-[#404854] appearance-none cursor-pointer"
+					>
+						{#each leverageOptions as option}
+							<option value={option}>{option}</option>
+						{/each}
+					</select>
+				</div>
+
+				<!-- Duration Selector -->
+				<div class="space-y-2">
+					<label for="duration" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Trade Duration</label>
+					<select
+						id="duration"
+						bind:value={duration}
+						class="w-full bg-[#0a0e1a]/80 border border-purple-500/20 rounded-lg px-3 py-2.5 text-xs focus:outline-none focus:border-purple-500/60 focus:shadow-[0_0_12px_rgba(168,85,247,0.15)] transition-all text-white font-semibold placeholder:text-[#404854] appearance-none cursor-pointer"
+					>
+						{#each durationOptions as option}
+							<option value={option}>{option}</option>
+						{/each}
+					</select>
 				</div>
 			</div>
 
@@ -230,10 +267,26 @@
 				</button>
 			</div>
 
+			<!-- Trade Summary Box -->
+			<div class="grid grid-cols-3 gap-3 p-4 bg-gradient-to-br from-[#0a0e1a]/40 to-[#1a1f3a]/20 border border-[#1e90ff]/10 rounded-lg">
+				<div class="text-center">
+					<p class="text-[10px] text-[#8e90a0] font-semibold uppercase tracking-wider mb-1">Leverage</p>
+					<p class="text-sm font-bold text-yellow-400">{leverage}</p>
+				</div>
+				<div class="text-center border-l border-r border-[#1e90ff]/10">
+					<p class="text-[10px] text-[#8e90a0] font-semibold uppercase tracking-wider mb-1">Duration</p>
+					<p class="text-sm font-bold text-purple-400">{duration}</p>
+				</div>
+				<div class="text-center">
+					<p class="text-[10px] text-[#8e90a0] font-semibold uppercase tracking-wider mb-1">Position Size</p>
+					<p class="text-sm font-bold text-blue-400">${(parseFloat(amount) * parseInt(leverage)).toFixed(2) || '0.00'}</p>
+				</div>
+			</div>
+
 			<!-- Info Text -->
 			<div class="pt-2 px-3 py-3 bg-[#0a0e1a]/60 border border-[#1e90ff]/10 rounded-lg">
 				<p class="text-xs text-[#8e90a0] leading-relaxed">
-					<span class="text-[#1e90ff] font-semibold">⚡ Tip:</span> Set stop loss and take profit levels to automate your risk management strategy.
+					<span class="text-[#1e90ff] font-semibold">⚡ Tip:</span> Set stop loss and take profit levels to automate your risk management strategy. Higher leverage increases both potential profits and risks.
 				</p>
 			</div>
 		</CardContent>
