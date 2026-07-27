@@ -44,7 +44,7 @@
         {#each plan.perks as perks}
         <p class="text-gray-300  font-sans my-0.5 text-[15px]"><span class="text-green-300">✔</span> {perks}</p>
         {/each}
-        {#if plan.title == data.profile.accountplan.trim()}
+        {#if plan.title == data.profile.accountplan?.trim()}
         <button class="bg-gray-500 w-full p-1.5 rounded-md text-center text-[17px] my-2 font-bold cursor-not-allowed">Current Plan</button>
         {:else}
        <a href="deposit"> <button class="bg-amber-300 w-full p-1.5 rounded-md text-center text-[17px] my-2 font-bold hover:bg-amber-400 ease-in-out transition-colors">Suscribe</button></a>
