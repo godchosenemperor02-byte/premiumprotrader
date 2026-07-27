@@ -98,7 +98,7 @@ async function copyAddress(address) {
     <h5 class='font-bold text-center'>Deposit Amount</h5>
     <p class="text-2xl text-center text-green-400">${amount}</p>
   </div>
-  <div class="w-full max-w-xl mx-auto bg-[#111827] border my-7 border-amber-200 rounded-2xl shadow-sm p-4 sm:p-6 md:p-8 hidden">
+  <div class="w-full max-w-xl mx-auto bg-[#111827] border my-7 border-amber-200 rounded-2xl shadow-sm p-4 sm:p-6 md:p-8 ">
   <!-- Header Block -->
   <div class="flex items-start gap-3 sm:gap-4 mb-6 ">
     <div class="p-2.5 sm:p-3 bg-[#111827] text-blue-600 rounded-xl flex-shrink-0">
