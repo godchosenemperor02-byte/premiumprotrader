@@ -11,11 +11,10 @@
     { label: "Capital", value: data.profile.capital, change: "+91.9%", up: true },
   ]);
   
-  // Signal strength state
+  // Signal strength state - fluctuates between 50-100
   let signalStrength = $state({
-    strength: 65,
+    strength: 75,
     status: "Strong",
-    bars: [true, true, true, true, false]
   });
   
   // Function to generate random change
@@ -28,18 +27,14 @@
     };
   };
   
-  // Function to generate random signal strength
+  // Function to generate signal strength between 50-100
   const generateSignalStrength = () => {
-    const strength = Math.floor(Math.random() * 100);
+    const strength = Math.floor(Math.random() * 51) + 50; // 50-100
     let status = "Weak";
-    if (strength >= 70) status = "Strong";
-    else if (strength >= 50) status = "Good";
+    if (strength >= 75) status = "Strong";
+    else if (strength >= 60) status = "Good";
     
-    // Generate active bars based on strength
-    const barCount = Math.ceil((strength / 100) * 5);
-    const bars = Array.from({ length: 5 }, (_, i) => i < barCount);
-    
-    return { strength, status, bars };
+    return { strength, status };
   };
   
   // Update changes every 2 seconds
@@ -65,8 +60,42 @@
   const positions = [
     // ... rest of your positions code
   ];
+
+  // Calculate color based on strength
+  const getStrengthColor = (strength) => {
+    if (strength >= 75) return 'from-green-500 to-emerald-400';
+    if (strength >= 60) return 'from-yellow-500 to-amber-400';
+    return 'from-orange-500 to-red-400';
+  };
+
+  const getStrengthTextColor = (strength) => {
+    if (strength >= 75) return 'text-green-500';
+    if (strength >= 60) return 'text-yellow-500';
+    return 'text-orange-500';
+  };
 </script>
 <div class="space-y-8">
+  <!-- Signal Strength Bar at Top -->
+  <div class="w-full">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-bold uppercase tracking-wider text-[#8e90a0]">Signal Strength</span>
+      <div class="flex items-center gap-2">
+        <span class="text-lg font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">
+          {signalStrength.strength}%
+        </span>
+        <span class={`text-xs font-semibold ${getStrengthTextColor(signalStrength.strength)}`}>
+          {signalStrength.status}
+        </span>
+      </div>
+    </div>
+    <div class="w-full h-2 bg-[#1e293b] rounded-full overflow-hidden border border-[#1e90ff]/10">
+      <div
+        class="h-full rounded-full bg-gradient-to-r {getStrengthColor(signalStrength.strength)} transition-all duration-500 ease-out shadow-lg"
+        style="width: {signalStrength.strength}%;"
+      ></div>
+    </div>
+  </div>
+
   <!-- Header -->
   <div class="flex flex-col gap-2">
     <h1 class="text-3xl font-bold tracking-tight text-[#dfe2f3]" style="font-family:'Playfair Display',serif;">Trading Overview</h1>
@@ -312,49 +341,6 @@
 
     <!-- Quick Trade Section -->
     <div class="space-y-6">
-      <!-- Signal Strength Card -->
-      <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle class="text-sm font-bold uppercase tracking-wider text-[#8e90a0]">Signal Strength</CardTitle>
-        </CardHeader>
-        <CardContent class="space-y-4">
-          <!-- Strength Percentage -->
-          <div class="flex items-end justify-between">
-            <div>
-              <p class="text-3xl font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">
-                {signalStrength.strength}%
-              </p>
-              <p class="text-xs text-[#8e90a0] mt-1">
-                {signalStrength.status}
-              </p>
-            </div>
-            <!-- Status Indicator -->
-            <div class="flex items-center gap-2">
-              <div class="w-3 h-3 rounded-full {signalStrength.status === 'Strong' ? 'bg-green-500' : signalStrength.status === 'Good' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse"></div>
-              <span class="text-xs font-semibold {signalStrength.status === 'Strong' ? 'text-green-500' : signalStrength.status === 'Good' ? 'text-yellow-500' : 'text-red-500'}">
-                {signalStrength.status}
-              </span>
-            </div>
-          </div>
-
-          <!-- Signal Bars -->
-          <div class="flex items-end justify-center gap-2 h-16">
-            {#each signalStrength.bars as isActive, index}
-              <div
-                class="flex-1 rounded-sm transition-all duration-300 ease-out {isActive ? 'bg-gradient-to-t from-[#2563eb] to-[#3b82f6] shadow-lg shadow-blue-500/50' : 'bg-[#1e293b]'}"
-                style="height: {(index + 1) * 20}%;"
-              ></div>
-            {/each}
-          </div>
-
-          <!-- Signal Info -->
-          <div class="pt-2 border-t border-[#1e90ff]/10">
-            <p class="text-[10px] text-[#8e90a0] text-center">
-              {signalStrength.status === 'Strong' ? 'Market conditions optimal' : signalStrength.status === 'Good' ? 'Market conditions favorable' : 'Market conditions unstable'}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
      
       <!-- Market Ticker Card -->
       <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm">
@@ -385,12 +371,9 @@
 </div>
 
 <style>
-  @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
-    }
-    50% {
-      box-shadow: 0 0 16px rgba(37, 99, 235, 0.8);
-    }
+  :global(body) {
+    --signal-strong: rgb(34, 197, 94);
+    --signal-good: rgb(234, 179, 8);
+    --signal-weak: rgb(249, 115, 22);
   }
 </style>
