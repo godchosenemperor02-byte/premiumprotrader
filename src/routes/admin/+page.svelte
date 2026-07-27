@@ -4,6 +4,14 @@
   // Svelte 5 Runes Props & Safe Derived Access
   let { data } = $props();
   let supabase = $derived(data?.supabase);
+  
+  // Derived variables to avoid optional chaining in templates
+  let subscriptionCount = $derived(
+    Array.isArray(data?.subscription) ? data.subscription.length : 0
+  );
+  let expertsCount = $derived(
+    Array.isArray(data?.experts) ? data.experts.length : 0
+  );
 
   const account_types = [
     {title:'Newbie', price:'Free',perks:['Account Registration','Basic Dashboard', 'Market Updates','Standard Support'], logo:'🆓'},
@@ -211,11 +219,11 @@
         <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Subscription Plans</span>
         <div class="p-2 bg-blue-950/60 border border-blue-900/40 text-blue-400 rounded-lg">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 1[...]
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 [...]
             </svg>
         </div>
       </div>
-      <div class="text-2xl font-mono font-bold text-white">{data?.subscription?.length ?? 0}</div>
+      <div class="text-2xl font-mono font-bold text-white">{subscriptionCount}</div>
     </div>
 
     <!-- Card 2: Experts -->
@@ -224,11 +232,11 @@
         <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Experts</span>
         <div class="p-2 bg-emerald-950/60 border border-emerald-900/40 text-emerald-400 rounded-lg">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 1[...]
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 [...]
             </svg>
         </div>
       </div>
-      <div class="text-2xl font-mono font-bold text-white">{data?.experts?.length ?? 0}</div>
+      <div class="text-2xl font-mono font-bold text-white">{expertsCount}</div>
     </div>
 
     <!-- Card 3: Registered Users Count -->
@@ -237,7 +245,7 @@
         <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Registered Users</span>
         <div class="p-2 bg-purple-950/60 border border-purple-900/40 text-purple-400 rounded-lg">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2..[...]
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.[...]
             </svg>
         </div>
       </div>
@@ -571,7 +579,7 @@
       <div class="flex items-center gap-3 text-red-400">
         <div class="p-2 bg-red-950/80 border border-red-900/50 rounded-xl">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 [...]
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3[...]
             </svg>
         </div>
         <h3 class="text-lg font-bold text-white">Delete Account</h3>
