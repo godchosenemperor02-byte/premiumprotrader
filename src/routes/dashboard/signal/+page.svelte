@@ -30,8 +30,7 @@
         </CardContent>
       </Card>
 </div>
-<h2 class="text-xl my-3 font-bold text-gray-300"> Available Packagesd</h2>
-<pre>{data.subscription}</pre>
+<h2 class="text-xl my-3 font-bold text-gray-300"> Available Packages</h2>
 <div class="grid md:grid-cols-3 gap-4">
 {#each data.subscription as plan }
 
