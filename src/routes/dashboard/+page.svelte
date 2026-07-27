@@ -1,20 +1,42 @@
 <script>
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
-   let { data } = $props()
+  import { onMount } from "svelte";
+  
+  let { data } = $props()
 
-  const stats = [
+  // Make stats reactive with state binding
+  let stats = $state([
     { label: "Total Balance", value: data.profile.balance, change: "+12.4%", up: true },
     { label: "Profits", value: data.profile.profit, change: "+8.2%", up: true },
-    { label: "Capital", value: data.profile.capital, change: "91.9%", up: true },
-  ];
+    { label: "Capital", value: data.profile.capital, change: "+91.9%", up: true },
+  ]);
   
+  // Function to generate random change
+  const generateRandomChange = () => {
+    const isPositive = Math.random() > 0.5;
+    const value = (Math.random() * 20).toFixed(1); // 0 to 20%
+    return {
+      change: `${isPositive ? '+' : '-'}${value}%`,
+      up: isPositive
+    };
+  };
+  
+  // Update changes every 2 seconds
+  onMount(() => {
+    const interval = setInterval(() => {
+      stats = stats.map(stat => ({
+        ...stat,
+        ...generateRandomChange()
+      }));
+    }, 2000); // Update every 2 seconds
+    
+    return () => clearInterval(interval);
+  });
+
   const positions = [
-    { pair: "BTC/USD", type: "Buy", size: "0.50", entry: "67,240.00", current: "68,420.00", pnl: "+$590.00", up: true },
-    { pair: "EUR/USD", type: "Sell", size: "1.20", entry: "1.08420", current: "1.08140", pnl: "+$336.00", up: true },
-    { pair: "XAU/USD", type: "Buy", size: "0.10", entry: "2,315.50", current: "2,312.40", pnl: "-$31.00", up: false },
+    // ... rest of your positions code
   ];
 </script>
-
 <div class="space-y-8">
   <!-- Header -->
   <div class="flex flex-col gap-2">
