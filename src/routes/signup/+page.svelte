@@ -12,12 +12,57 @@
     email: '',
     password: '',
     country: '',
+    currency: '',
     phonenumber: '',
     admin: false
   })
   let loading = $state(false);
   let errorMsg = $state("");
   let successMsg = $state("");
+
+  // Minimal country -> currency mapping. Add more entries if you need broader coverage.
+  const countryOptions = [
+    { name: 'United States', code: 'US', currency: 'USD' },
+    { name: 'United Kingdom', code: 'GB', currency: 'GBP' },
+    { name: 'Canada', code: 'CA', currency: 'CAD' },
+    { name: 'Australia', code: 'AU', currency: 'AUD' },
+    { name: 'Germany', code: 'DE', currency: 'EUR' },
+    { name: 'France', code: 'FR', currency: 'EUR' },
+    { name: 'Spain', code: 'ES', currency: 'EUR' },
+    { name: 'Italy', code: 'IT', currency: 'EUR' },
+    { name: 'Japan', code: 'JP', currency: 'JPY' },
+    { name: 'China', code: 'CN', currency: 'CNY' },
+    { name: 'India', code: 'IN', currency: 'INR' },
+    { name: 'Brazil', code: 'BR', currency: 'BRL' },
+    { name: 'South Africa', code: 'ZA', currency: 'ZAR' },
+    { name: 'Nigeria', code: 'NG', currency: 'NGN' },
+    { name: 'Kenya', code: 'KE', currency: 'KES' },
+    { name: 'Russia', code: 'RU', currency: 'RUB' },
+    { name: 'United Arab Emirates', code: 'AE', currency: 'AED' },
+    { name: 'Saudi Arabia', code: 'SA', currency: 'SAR' },
+    { name: 'Switzerland', code: 'CH', currency: 'CHF' },
+    { name: 'Sweden', code: 'SE', currency: 'SEK' },
+    { name: 'Norway', code: 'NO', currency: 'NOK' },
+    { name: 'Denmark', code: 'DK', currency: 'DKK' },
+    { name: 'Netherlands', code: 'NL', currency: 'EUR' },
+    { name: 'Belgium', code: 'BE', currency: 'EUR' },
+    { name: 'Mexico', code: 'MX', currency: 'MXN' },
+    { name: 'Argentina', code: 'AR', currency: 'ARS' },
+    { name: 'Chile', code: 'CL', currency: 'CLP' },
+    { name: 'New Zealand', code: 'NZ', currency: 'NZD' },
+    { name: 'Singapore', code: 'SG', currency: 'SGD' },
+    { name: 'Hong Kong', code: 'HK', currency: 'HKD' },
+    { name: 'South Korea', code: 'KR', currency: 'KRW' }
+  ];
+
+  const currencyOptions = Array.from(new Set(countryOptions.map(c => c.currency)));
+
+  function onCountryChange(e: Event) {
+    const val = (e.target as HTMLSelectElement).value;
+    user.country = val;
+    const found = countryOptions.find(c => c.code === val);
+    user.currency = found ? found.currency : '';
+  }
 
   async function handleSignup(e: SubmitEvent) {
     e.preventDefault();
@@ -33,6 +78,7 @@
           first_name: user.firstname,
           last_name: user.lastname,
           country: user.country,
+          currency: user.currency,
           phone_number: user.phonenumber,
           admin: user.admin
       }
@@ -159,14 +205,18 @@
               <Label for="country" class="text-xs uppercase text-slate-500 tracking-wider">Country</Label>
               <div class="relative">
                   <Globe class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
-                <Input 
-                  id="country" 
-                  placeholder="Country"
-                  type="text"
+                <select
+                  id="country"
                   required
-                  bind:value={user.country} 
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
-                />
+                  bind:value={user.country}
+                  on:change={onCountryChange}
+                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 w-full text-slate-200 rounded"
+                >
+                  <option value="" disabled selected>Select country</option>
+                  {#each countryOptions as c}
+                    <option value={c.code}>{c.name}</option>
+                  {/each}
+                </select>
               </div>
             </div>
             <div class="space-y-2">
@@ -199,21 +249,39 @@
               />
             </div>
           </div>
-          <div class="space-y-2">
-            <div class="flex justify-between">
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
               <Label for="key" class="text-xs uppercase text-slate-500 tracking-wider">Security Key</Label>
+              <div class="relative">
+                <Lock class="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                <Input 
+                  id="key" 
+                  type="password" 
+                  placeholder="••••••••••••" 
+                  required
+                  bind:value={user.password} 
+                  class="bg-slate-900/50 border-slate-700 pl-10 h-12"
+                />
+                <Eye class="absolute right-3 top-3 h-4 w-4 text-slate-500 cursor-pointer" />
+              </div>
             </div>
-            <div class="relative">
-              <Lock class="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-              <Input 
-                id="key" 
-                type="password" 
-                placeholder="••••••••••••" 
-                required
-                bind:value={user.password} 
-                class="bg-slate-900/50 border-slate-700 pl-10 h-12"
-              />
-              <Eye class="absolute right-3 top-3 h-4 w-4 text-slate-500 cursor-pointer" />
+
+            <div class="space-y-2">
+              <Label for="currency" class="text-xs uppercase text-slate-500 tracking-wider">Currency</Label>
+              <div class="relative">
+                <div class="absolute left-3 top-3 h-4 w-4 text-slate-500 flex items-center justify-center">$</div>
+                <select
+                  id="currency"
+                  bind:value={user.currency}
+                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 w-full text-slate-200 rounded"
+                >
+                  <option value="" disabled selected>Select currency</option>
+                  {#each currencyOptions as cur}
+                    <option value={cur}>{cur}</option>
+                  {/each}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -252,7 +320,7 @@
   <footer class="p-8 bg-[#040608] border-t border-slate-900">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-8">
       <p class="text-[10px] text-slate-600 max-w-xl leading-relaxed uppercase tracking-tight">
-        © 2024 Premuim-pro-trader. Member FINRA/SIPC. High-risk investment notice: CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. 74% of retail investor accounts lose money when trading CFDs with this provider. You should consider whether you understand how CFDs work and whether you can afford to take the high risk of losing your money.
+        © 2024 Premuim-pro-trader. Member FINRA/SIPC. High-risk investment notice: CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. 74% of retail i[...]
       </p>
       <nav class="flex gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest self-center">
         <a href="/" class="hover:text-white">Privacy Policy</a>
