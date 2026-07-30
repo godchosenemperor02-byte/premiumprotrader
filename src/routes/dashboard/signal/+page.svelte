@@ -8,6 +8,7 @@
         {title:'Gold',desc:'High-confidence signals backed by strong market confluence and clear confirmations.',price:'3500'},
         {title:'Platinum',desc:'Premium, top-tier signals with the highest conviction, precision entries, and optimal risk management.',price:'5000'}
     ]
+
 </script>
 <div class="flex flex-1 flex-col md:flex-row md:justify-between mb-4">
   <section class="">
@@ -42,10 +43,10 @@
     <CardContent>
         <p class="text-sm text-gray-400">{plan.desc}</p>
         <p class="text-2xl text-gray-200 font-bold mt-2">$ {plan.price}</p>
-        {#if data.profile.subscription == plan.title?.trim()}
-        <button class="bg-amber-300 w-full p-1.5 rounded-md text-center text-lg my-2 font-bold disabled:opacity-50" disabled>Suscribed</button>
+        {#if data.profile.subscription == plan.title?.trim()?}
+        <button class="bg-amber-300 w-full p-1.5 rounded-md text-center text-lg my-2 font-bold disabled:opacity-50" disabled>Subscribed</button>
         {:else}
-        <a href="deposit"><button class="bg-amber-300 w-full p-1.5 rounded-md text-center text-lg my-2 font-bold hover:bg-amber-400 ease-in-out transition-colors" disabled>Suscribe</button></a> 
+        <a href="deposit"><button class="bg-amber-300 w-full p-1.5 rounded-md text-center text-lg my-2 font-bold hover:bg-amber-400 ease-in-out transition-colors" disabled>Subscribe</button></a> 
         {/if}
     </CardContent>
 </Card>
