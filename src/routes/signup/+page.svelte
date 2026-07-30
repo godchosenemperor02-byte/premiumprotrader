@@ -209,10 +209,10 @@
                   id="country"
                   required
                   bind:value={user.country}
-                  on:change={onCountryChange}
+                  onchange={onCountryChange}
                   class="bg-slate-900/50 border-slate-700 pl-10 h-12 w-full text-slate-200 rounded"
                 >
-                  <option value="" disabled selected>Select country</option>
+                  <option value="" disabled>Select country</option>
                   {#each countryOptions as c}
                     <option value={c.code}>{c.name}</option>
                   {/each}
@@ -276,7 +276,7 @@
                   bind:value={user.currency}
                   class="bg-slate-900/50 border-slate-700 pl-10 h-12 w-full text-slate-200 rounded"
                 >
-                  <option value="" disabled selected>Select currency</option>
+                  <option value="" disabled>Select currency</option>
                   {#each currencyOptions as cur}
                     <option value={cur}>{cur}</option>
                   {/each}
