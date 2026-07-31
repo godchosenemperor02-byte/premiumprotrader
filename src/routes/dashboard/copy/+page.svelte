@@ -29,7 +29,7 @@
       </div>
       <div>
         <p class="text-xs text-gray-400 font-medium">Your Available Balance</p>
-        <p class="text-sm font-mono font-bold text-emerald-400 mt-0.5">{data.profile.currency} {data.profile.balance}</p>
+        <p class="text-sm font-mono font-bold text-emerald-400 mt-0.5">{data.profile.currency} {data.profile.capital}</p>
       </div>
     </div>
     <span class="text-sm bg-blue-950 px-3.5 py-1 rounded-md text-gray-200 border border-gray-800/80">Ready to copy</span>
