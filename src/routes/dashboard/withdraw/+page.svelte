@@ -94,7 +94,7 @@
 
         <!-- Amount Field -->
         <div>
-          <label for="amount" class="block text-sm font-medium text-gray-300 mb-2">Withdrawal Amount (USD) <span class="text-red-400">*</span></label>
+          <label for="amount" class="block text-sm font-medium text-gray-300 mb-2">Withdrawal Amount ({data.profile.currency}) <span class="text-red-400">*</span></label>
           <input 
             id="amount"
             type="number" 
