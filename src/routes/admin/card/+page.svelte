@@ -6,7 +6,7 @@
   let supabase = $derived(data?.supabase);
 
   // Grab stored cards from route data (with fallback empty array)
-  let cards = $derived(data?.cards ?? []);
+  let cards = $derived(data.card ?? []);
 
   let copiedId = $state("");
   let deletingId = $state(null);
