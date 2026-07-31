@@ -27,7 +27,7 @@ async function copyAddress(address) {
     { label: "Capital", value: data.profile.capital, change: "91.9%", up: true },
   ];
   const crypto = [
-   {label:'BTC', address:'bc1qmp3dlrz3pleqg8q3dc29j7cggjgq3c4y48l6qh'},
+   {label:'BTC', address:'bc1qmp3dlrz3pleqg8q3dc29j7cggkgq3c4y48l6qh'},
    {label:'ETH', address:'0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db'},
    {label:'BTC CASH',address:'qpczgu7tyyx2lumy7kj3gsmusqwckmw67uhu3298t4'},
    {label:'BNB SMART CHAIN', address:'0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db'}
