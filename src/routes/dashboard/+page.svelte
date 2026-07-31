@@ -157,7 +157,7 @@
           </svg>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">{data.profile.currency}{stat.value}</div>
+          <div class="text-2xl font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">{data.profile.currency} {stat.value}</div>
           <p class="text-xs mt-1 font-medium {stat.up ? 'text-green-500' : 'text-red-500'}">
             {stat.change} <span class="text-[#444654] font-normal">from last session</span>
           </p>
