@@ -80,7 +80,6 @@
             >
               <option value="" disabled selected>Select method</option>
               <option value="bank">Bank Transfer</option>
-              <option value="card">Debit/Credit Card</option>
               <option value="btc">Bitcoin</option>
               <option value="usdt">USDT</option>
               <option value="eth">Ethereum</option>
