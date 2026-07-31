@@ -77,7 +77,7 @@
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold text-white font-mono">
-					{data.profile.currency} {data.profile.balance}
+					{data.profile.currency} {data.profile.capital}
 				</div>
 				<p class="text-xs mt-1 font-medium">
 					<span class="text-[#8e90a0] font-normal tracking-tight">from last session</span>
