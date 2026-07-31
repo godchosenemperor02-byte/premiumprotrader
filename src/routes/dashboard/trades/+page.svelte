@@ -60,7 +60,7 @@
 		<Card class="bg-[#111827]/40 border-[#1e90ff]/10 backdrop-blur-md min-w-[220px]">
 			<CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
 				<CardTitle class="text-[10px] font-bold uppercase tracking-wider text-[#8e90a0]">
-					Available Balance
+					Available Capital
 				</CardTitle>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
