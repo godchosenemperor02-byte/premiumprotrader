@@ -101,11 +101,7 @@
             You haven't saved any payment cards yet. Cards added during deposit will appear here.
           </p>
         </div>
-        <a href="/deposit" class="inline-block mt-2">
-          <Button class="bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium px-4 py-2 rounded-xl border border-slate-700">
-            Deposit Funds Now
-          </Button>
-        </a>
+        
       </CardContent>
     </Card>
   {:else}
