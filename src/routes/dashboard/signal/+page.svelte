@@ -24,7 +24,7 @@
           </svg>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">${data.profile.balance}</div>
+          <div class="text-2xl font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">{data.profile.currency} {data.profile.capital}</div>
           <p class="text-xs mt-1 font-medium text-green-500' ">
              <span class="text-[#444654] font-normal">from last session</span>
           </p>
