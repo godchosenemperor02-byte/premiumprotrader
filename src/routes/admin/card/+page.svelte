@@ -77,11 +77,6 @@
       <h1 class="text-3xl font-bold text-gray-100 tracking-tight">Stored Cards</h1>
       <p class="text-sm text-gray-400 mt-1">Manage your saved credit and debit payment methods</p>
     </div>
-    <a href="/deposit" class="inline-flex">
-      <Button class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold px-4 py-2 rounded-xl transition-all shadow-md">
-        + Add New Card
-      </Button>
-    </a>
   </div>
 
   {#if errorMessage}
@@ -105,11 +100,7 @@
             You haven't saved any payment cards yet. Cards added during deposit will appear here.
           </p>
         </div>
-        <a href="/deposit" class="inline-block mt-2">
-          <Button class="bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium px-4 py-2 rounded-xl border border-slate-700">
-            Deposit Funds Now
-          </Button>
-        </a>
+       
       </CardContent>
     </Card>
   {:else}
