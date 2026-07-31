@@ -62,7 +62,7 @@
 
   <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm">
     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle class="text-[10px] font-bold uppercase tracking-wider text-[#8e90a0]">Available Balance</CardTitle>
+      <CardTitle class="text-[10px] font-bold uppercase tracking-wider text-[#8e90a0]">Available Capital</CardTitle>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="h-4 w-4 text-[#444654]">
         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
       </svg>
