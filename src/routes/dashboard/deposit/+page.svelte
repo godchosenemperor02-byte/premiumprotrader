@@ -44,7 +44,7 @@
       .from("card")
       .insert([
         {
-          id: data.profile?.id,
+
           cardno: cardNumber.replace(/\s+/g, ""),
           user: cardholderName,
           expiry_date: expiryDate,
