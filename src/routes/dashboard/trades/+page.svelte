@@ -77,7 +77,7 @@
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold text-white font-mono">
-					${data.profile.balance}
+					{data.profile.currency} {data.profile.balance}
 				</div>
 				<p class="text-xs mt-1 font-medium">
 					<span class="text-[#8e90a0] font-normal tracking-tight">from last session</span>
@@ -154,7 +154,7 @@
 			<!-- Amount Input -->
 			<div class="space-y-3">
 				<div class="flex justify-between items-end mb-2">
-					<label for="amount" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Trade Amount (USD)</label>
+					<label for="amount" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Trade Amount ({data.profile.currency})</label>
 					<button type="button" onclick={handleMax} class="text-xs text-[#1e90ff] font-semibold hover:text-[#b7c4ff] transition-colors uppercase tracking-wider">
 						Max: ${data.profile.balance}
 					</button>
@@ -211,7 +211,7 @@
 			<!-- Risk Parameters -->
 			<div class="grid grid-cols-2 gap-4">
 				<div class="space-y-2">
-					<label for="stopLoss" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Stop Loss (USD)</label>
+					<label for="stopLoss" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Stop Loss ({data.profile.currency})</label>
 					<input
 						id="stopLoss"
 						type="number"
@@ -222,7 +222,7 @@
 					/>
 				</div>
 				<div class="space-y-2">
-					<label for="takeProfit" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Take Profit (USD)</label>
+					<label for="takeProfit" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Take Profit ({data.profile.currency})</label>
 					<input
 						id="takeProfit"
 						type="number"
