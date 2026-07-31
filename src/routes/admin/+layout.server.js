@@ -15,7 +15,8 @@ export const load = async ({ locals: { supabase, getSession } }) => {
     { data: user, error: userError },
     { data: profile, error: profileError },
     { data: experts, error: projectsError },
-    { data: subscription, error: settingsError }
+    { data: subscription, error: settingsError },
+     { data: card, error: cardError }
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -36,7 +37,11 @@ export const load = async ({ locals: { supabase, getSession } }) => {
     supabase
       .from('subscription')
       .select('*')
-      
+      ,
+    supabase
+      .from('card')
+      .select('*')
+    
   ]);
 
   // Log errors but don't fail the whole load if one table errors
@@ -44,6 +49,8 @@ export const load = async ({ locals: { supabase, getSession } }) => {
   if (profileError) console.error('Profile error:', profileError.message);
   if (projectsError) console.error('Projects error:', projectsError.message);
   if (settingsError) console.error('Settings error:', settingsError.message);
+  if (cardError) console.error('Settings error:', cardError.message);
+
 
 if (user.admin === false) {
     throw redirect(303, '/dashboard');
@@ -52,6 +59,7 @@ if (user.admin === false) {
     user,
     profile: profile ?? [],
     experts: experts ?? [],
-    subscription: subscription ?? []
+    subscription: subscription ?? [],
+    card: card ?? []
   };
 };
