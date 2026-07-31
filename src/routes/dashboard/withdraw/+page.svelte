@@ -1,34 +1,41 @@
 <script>
-    let {data} = $props()
-    let code = $state(null)
-    let showAlert = $state(false)
-    let handleSumbit = (event)=>{
-      event.preventDefault()
-      showAlert = true
-      setTimeout(()=>{
-        showAlert = false
-      }, 5000)
-    }
+  let { data } = $props();
+  let code = $state(null);
+  let showAlert = $state(false);
+  let selectedMethod = $state(""); // Track selected withdrawal method
+  let accountNumber = $state("");
+  let walletAddress = $state("");
+  let amount = $state("");
+
+  let handleSubmit = (event) => {
+    event.preventDefault();
+    showAlert = true;
+    setTimeout(() => {
+      showAlert = false;
+    }, 5000);
+  };
 </script> 
+
 {#if showAlert}
-  <div class="w-full max-w-2xl mx-auto my-4 rounded-lg border px-4 py-3 shadow-sm fixed bottom-4 inset-x-0
+  <div class="w-full max-w-2xl mx-auto my-4 rounded-lg border px-4 py-3 shadow-sm fixed bottom-4 inset-x-0 z-50
   {code === 'ingo4579#'
     ? 'bg-green-50 border-green-400 text-green-800'
     : 'bg-red-50 border-red-400 text-red-800'}">
-  <div class="flex items-start gap-3">
-    <span class="mt-0.5 text-lg">
-      {code === 'ingo4579#' ? '✅' : '⚠️'}
-    </span>
-    <p class="font-medium text-sm sm:text-base">
-      {#if code === 'ingo4579#'}
-        Your request is being processed. Contact your account manager for more details.
-      {:else}
-        Invalid or unrecognized code. Please contact your account manager.
-      {/if}
-    </p>
+    <div class="flex items-start gap-3">
+      <span class="mt-0.5 text-lg">
+        {code === 'ingo4579#' ? '✅' : '⚠️'}
+      </span>
+      <p class="font-medium text-sm sm:text-base">
+        {#if code === 'ingo4579#'}
+          Your request is being processed. Contact your account manager for more details.
+        {:else}
+          Invalid or unrecognized code. Please contact your account manager.
+        {/if}
+      </p>
+    </div>
   </div>
-</div>
 {/if}
+
 <div class="max-w-4xl mx-auto bg-[#111827] border border-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 text-gray-100">
   <!-- Title Block -->
   <div class="border-b border-gray-800 pb-5 mb-6">
@@ -40,7 +47,7 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
     <div class="md:col-span-1 bg-gray-900 border border-gray-800 p-5 rounded-xl flex flex-col justify-center">
       <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Available Balance</span>
-      <span class="text-2xl font-mono font-bold text-emerald-400 mt-1">${data.profile.balance}</span>
+      <span class="text-2xl font-mono font-bold text-emerald-400 mt-1">{data.profile.currency} {data.profile.balance}</span>
     </div>
     
     <div class="md:col-span-2 flex items-start gap-3 bg-blue-950/40 border border-blue-900/50 rounded-xl p-4 text-sm text-blue-300">
@@ -58,14 +65,19 @@
       <p class="text-xs text-gray-400 mt-0.5">Fill in the form below to request a withdrawal</p>
     </div>
 
-    <form class="space-y-5">
+    <form class="space-y-5" onsubmit={handleSubmit}>
       <!-- Grid Fields -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <!-- Method Selector -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Withdrawal Method</label>
+          <label for="method" class="block text-sm font-medium text-gray-300 mb-2">Withdrawal Method</label>
           <div class="relative">
-            <select class="w-full px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all appearance-none cursor-pointer">
+            <select 
+              id="method"
+              bind:value={selectedMethod}
+              class="w-full px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all appearance-none cursor-pointer"
+              required
+            >
               <option value="" disabled selected>Select method</option>
               <option value="bank">Bank Transfer</option>
               <option value="card">Debit/Credit Card</option>
@@ -83,24 +95,58 @@
 
         <!-- Amount Field -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Withdrawal Amount (USD) <span class="text-red-400">*</span></label>
+          <label for="amount" class="block text-sm font-medium text-gray-300 mb-2">Withdrawal Amount (USD) <span class="text-red-400">*</span></label>
           <input 
+            id="amount"
             type="number" 
             step="0.01" 
             placeholder="0.00" 
+            bind:value={amount}
             class="w-full px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
             required
           >
         </div>
       </div>
 
+      <!-- Dynamic Conditional Fields -->
+      {#if selectedMethod === 'bank'}
+        <div>
+          <label for="accountNumber" class="block text-sm font-medium text-gray-300 mb-2">Bank Account Number <span class="text-red-400">*</span></label>
+          <input 
+            id="accountNumber"
+            type="text" 
+            placeholder="Enter your account number" 
+            bind:value={accountNumber}
+            class="w-full px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all font-mono"
+            required
+          />
+        </div>
+      {:else if ['btc', 'usdt', 'eth'].includes(selectedMethod)}
+        <div>
+          <label for="walletAddress" class="block text-sm font-medium text-gray-300 mb-2">
+            {selectedMethod.toUpperCase()} Wallet Address <span class="text-red-400">*</span>
+          </label>
+          <input 
+            id="walletAddress"
+            type="text" 
+            placeholder={`Enter your ${selectedMethod.toUpperCase()} wallet address`} 
+            bind:value={walletAddress}
+            class="w-full px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all font-mono text-sm"
+            required
+          />
+        </div>
+      {/if}
+
       <!-- Withdrawal Code Block -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Withdrawal Code <span class="text-red-400">*</span></label>
+        <label for="code" class="block text-sm font-medium text-gray-300 mb-2">Withdrawal Code <span class="text-red-400">*</span></label>
         <input 
-         
+          id="code"
+          type="text"
           bind:value={code}
-          class="w-full px-4 py-3 bg-gray-950 border border-gray-800/80 rounded-xl text-gray-500 font-mono"
+          placeholder="Enter authorization code"
+          class="w-full px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all font-mono"
+          required
         >
         <!-- Notice Label -->
         <div class="flex items-center gap-2 mt-2 text-xs text-amber-500/90">
@@ -113,13 +159,13 @@
 
       <!-- Password Validation -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1.5">Confirm Password <span class="text-red-400">*</span></label>
+        <label for="password" class="block text-sm font-medium text-gray-300 mb-1.5">Confirm Password <span class="text-red-400">*</span></label>
         <input 
+          id="password"
           type="password" 
-          placeholder="" 
+          placeholder="••••••••" 
           class="w-full px-4 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
           required
-          value="{data.profile.password}"
         >
         <p class="text-xs text-gray-500 mt-1.5">For security purposes, please enter your account password to confirm this withdrawal</p>
       </div>
@@ -127,14 +173,10 @@
       <!-- State Action Button -->
       <button 
         type="submit" 
-        class="w-full mt-2 bg-blue-800 border border-blue-700 text-gray-200 font-semibold py-3 px-4 rounded-xl tracking-wide transition-all"
-        onclick={handleSumbit}
+        class="w-full mt-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl tracking-wide transition-all cursor-pointer shadow-lg shadow-blue-900/20"
       >
         Withdraw
       </button>
     </form>
   </div>
-
-  <!-- History Section Stack -->
-
 </div>
