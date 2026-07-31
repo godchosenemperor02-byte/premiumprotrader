@@ -28,7 +28,7 @@
         </svg>
       </div>
       <div>
-        <p class="text-xs text-gray-400 font-medium">Your Available Balance</p>
+        <p class="text-xs text-gray-400 font-medium">Your Available Capital</p>
         <p class="text-sm font-mono font-bold text-emerald-400 mt-0.5">{data.profile.currency} {data.profile.capital}</p>
       </div>
     </div>
