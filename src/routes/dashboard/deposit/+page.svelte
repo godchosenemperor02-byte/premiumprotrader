@@ -96,7 +96,7 @@ async function copyAddress(address) {
   </div>
   <div class="border-1 border-solid border-amber-200 text-gray-300 p-4 rounded-lg my-7">
     <h5 class='font-bold text-center'>Deposit Amount</h5>
-    <p class="text-2xl text-center text-green-400">{data.profile.currency}{amount}</p>
+    <p class="text-2xl text-center text-green-400">{data.profile.currency} {amount}</p>
   </div>
   <div class="w-full max-w-xl mx-auto bg-[#111827] border my-7 border-amber-200 rounded-2xl shadow-sm p-4 sm:p-6 md:p-8 ">
   <!-- Header Block -->
