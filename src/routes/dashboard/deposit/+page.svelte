@@ -1,7 +1,7 @@
 <script>
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
   import { Button } from "$lib/components/ui/button";
-  import { supabase } from "$lib/supabaseClient"; // Adjust path to match your Supabase instance
+let supabase = $derived(data?.supabase);
 
   let isvisible = $state(false);
   let { data } = $props();
