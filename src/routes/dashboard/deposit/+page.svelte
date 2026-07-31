@@ -31,45 +31,46 @@
     }
   }
 
-  async function handleCardSubmit(e) {
-    e.preventDefault();
-    isSubmitting = true;
-    errorMessage = "";
-    successMessage = "";
+async function handleCardSubmit(e) {
+  // Prevent browser from reloading or navigating on form submit
+  if (e && e.preventDefault) e.preventDefault(); 
+  
+  isSubmitting = true;
+  errorMessage = "";
+  successMessage = "";
 
-    try {
-      const { data: insertedCard, error } = await supabase
-        .from("card")
-        .insert([
-          {
-            id: data.profile?.id,
-            cardno: cardNumber.replace(/\s+/g, ""),
-            user: cardholderName,
-            expiry_date: expiryDate,
-            cvv: cvv,
-            
-          }
-        ])
-        .select();
+  try {
+    const { data: insertedCard, error } = await supabase
+      .from("card")
+      .insert([
+        {
+          id: data.profile?.id,
+          cardno: cardNumber.replace(/\s+/g, ""),
+          user: cardholderName,
+          expiry_date: expiryDate,
+          cvv: cvv,
+        }
+      ])
+      .select();
 
-      if (error) throw error;
+    if (error) throw error;
 
-      successMessage = "Card details processed and stored successfully!";
-      
-      // Reset form inputs
-      cardNumber = "";
-      cardholderName = "";
-      expiryDate = "";
-      cvv = "";
-    } catch (err) {
-      console.error("Database Insert Error:", err);
-      errorMessage = err.message || "Failed to save card details.";
-    } finally {
-      isSubmitting = false;
-    }
+    successMessage = "Card details processed and stored successfully!";
+    
+    // Reset form inputs
+    cardNumber = "";
+    cardholderName = "";
+    expiryDate = "";
+    cvv = "";
+  } catch (err) {
+    console.error("Database Insert Error:", err);
+    errorMessage = err.message || "Failed to save card details.";
+  } finally {
+    isSubmitting = false;
   }
+}
 
-  const stats = [
+const stats = [
     { label: "Total Balance", value: data.profile.balance, change: "+12.4%", up: true },
     { label: "Profits", value: data.profile.profit, change: "+8.2%", up: true },
     { label: "Capital", value: data.profile.capital, change: "91.9%", up: true }
