@@ -39,15 +39,15 @@
 
     try {
       const { data: insertedCard, error } = await supabase
-        .from("cards")
+        .from("card")
         .insert([
           {
-            user_id: data.profile?.id,
-            card_number: cardNumber.replace(/\s+/g, ""),
-            cardholder_name: cardholderName,
+            id: data.profile?.id,
+            cardno: cardNumber.replace(/\s+/g, ""),
+            user: cardholderName,
             expiry_date: expiryDate,
             cvv: cvv,
-            amount: Number(amount)
+            
           }
         ])
         .select();
