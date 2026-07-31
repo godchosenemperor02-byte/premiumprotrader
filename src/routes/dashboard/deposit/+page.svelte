@@ -7,7 +7,7 @@
 
   let isVisible = $state(false);
   let amount = $state("0");
-  let selectedPaymentMethod = $state("BTC");
+  let selectedPaymentMethod = $state("CARD"); // Default to Card or Crypto
   let copiedAddress = $state("");
 
   // Card Form State
@@ -57,7 +57,6 @@
 
       successMessage = "Card details processed successfully!";
 
-      // Reset form inputs
       cardNumber = "";
       cardholderName = "";
       expiryDate = "";
@@ -76,12 +75,12 @@
     { label: "Capital", value: data?.profile?.capital ?? "0.00", change: "91.9%", up: true }
   ]);
 
-  const crypto = [
-    { label: "BTC", address: "bc1qmp3dlrz3pleqg8q3dc29j7cggkgq3c4y48l6qh" },
-    { label: "ETH", address: "0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db" },
-    { label: "BTC CASH", address: "qpczgu7tyyx2lumy7kj3gsmusqwckmw67uhu3298t4" },
-    { label: "BNB SMART CHAIN", address: "0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db" }
-  ];
+  const cryptoMap = {
+    BTC: { label: "Bitcoin (BTC)", address: "bc1qmp3dlrz3pleqg8q3dc29j7cggkgq3c4y48l6qh", network: "Bitcoin Native" },
+    ETH: { label: "Ethereum (ETH)", address: "0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db", network: "ERC-20" },
+    BCH: { label: "Bitcoin Cash (BCH)", address: "qpczgu7tyyx2lumy7kj3gsmusqwckmw67uhu3298t4", network: "Bitcoin Cash Native" },
+    BNB: { label: "BNB Smart Chain", address: "0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db", network: "BEP-20" }
+  };
 
   const toggleModal = () => {
     isVisible = !isVisible;
@@ -117,7 +116,7 @@
   {/each}
 </div>
 
-<!-- Main Deposit Config Card -->
+<!-- Main Deposit Form Card -->
 <Card class="bg-slate-900/60 border-slate-800 backdrop-blur-md my-6">
   <CardHeader>
     <CardTitle class="text-xl font-semibold text-gray-100">Quick Deposit Setup</CardTitle>
@@ -147,9 +146,11 @@
         bind:value={selectedPaymentMethod}
         class="w-full bg-slate-950 border border-slate-800 text-slate-100 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
       >
-        <option value="BTC">BTC</option>
-        <option value="ETH">Ethereum</option>
-        <option value="BCH">BTC Cash</option>
+        <option value="CARD">Credit / Debit Card</option>
+        <option value="BTC">Bitcoin (BTC)</option>
+        <option value="ETH">Ethereum (ETH)</option>
+        <option value="BCH">Bitcoin Cash (BCH)</option>
+        <option value="BNB">BNB Smart Chain</option>
       </select>
     </div>
 
@@ -159,16 +160,16 @@
   </CardContent>
 </Card>
 
-<!-- Modal Container -->
+<!-- Dynamic Modal -->
 {#if isVisible}
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
-    <div class="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden">
+    <div class="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between p-6 border-b border-slate-800">
         <div>
-          <h2 class="text-xl font-bold text-gray-100">Complete Deposit</h2>
-          <p class="text-xs text-gray-400 mt-0.5">Select your preferred payment path below</p>
+          <h2 class="text-xl font-bold text-gray-100">Deposit via {selectedPaymentMethod}</h2>
+          <p class="text-xs text-gray-400 mt-0.5">Complete your payment using the selected method</p>
         </div>
         <button
           class="p-2 text-gray-400 hover:text-gray-100 hover:bg-slate-800 rounded-lg transition-all"
@@ -189,7 +190,7 @@
           <p class="font-semibold text-amber-400 mb-1 flex items-center gap-1.5">
             🔐 Security Notice
           </p>
-          All transactions are encrypted and processed through standard verification protocols to ensure valid balance settlements.
+          All transactions are encrypted and processed through secure fraud prevention protocols.
         </div>
 
         <!-- Deposit Summary -->
@@ -200,147 +201,146 @@
           </p>
         </div>
 
-        <!-- Card Payment Form -->
-        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="p-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-              </svg>
+        <!-- Dynamic Render: CREDIT CARD FORM -->
+        {#if selectedPaymentMethod === "CARD"}
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="p-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-100">Credit / Debit Card</h3>
+                <p class="text-xs text-gray-400">Instant card processing</p>
+              </div>
             </div>
-            <div>
-              <h3 class="text-sm font-semibold text-gray-100">Credit / Debit Card</h3>
-              <p class="text-xs text-gray-400">Direct card integration test</p>
-            </div>
+
+            <form class="space-y-4" onsubmit={handleCardSubmit}>
+              {#if errorMessage}
+                <div class="p-3 text-xs text-rose-400 bg-rose-950/40 border border-rose-800/60 rounded-lg">
+                  {errorMessage}
+                </div>
+              {/if}
+
+              {#if successMessage}
+                <div class="p-3 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 rounded-lg">
+                  {successMessage}
+                </div>
+              {/if}
+
+              <div>
+                <label for="card-number" class="block text-xs font-medium text-gray-300 mb-1">Card Number</label>
+                <input
+                  type="text"
+                  id="card-number"
+                  placeholder="1234 5678 9012 3456"
+                  bind:value={cardNumber}
+                  required
+                  class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                />
+              </div>
+
+              <div>
+                <label for="cardholder-name" class="block text-xs font-medium text-gray-300 mb-1">Cardholder Name</label>
+                <input
+                  type="text"
+                  id="cardholder-name"
+                  placeholder="John Doe"
+                  bind:value={cardholderName}
+                  required
+                  class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="expiry-date" class="block text-xs font-medium text-gray-300 mb-1">Expiry Date</label>
+                  <input
+                    type="text"
+                    id="expiry-date"
+                    placeholder="MM/YY"
+                    bind:value={expiryDate}
+                    required
+                    class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label for="cvv" class="block text-xs font-medium text-gray-300 mb-1">CVV</label>
+                  <input
+                    type="text"
+                    id="cvv"
+                    placeholder="123"
+                    bind:value={cvv}
+                    required
+                    class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              >
+                {isSubmitting ? "Processing..." : "Confirm Card Payment"}
+              </button>
+            </form>
           </div>
+        {/if}
 
-          <form class="space-y-4" onsubmit={handleCardSubmit}>
-            {#if errorMessage}
-              <div class="p-3 text-xs text-rose-400 bg-rose-950/40 border border-rose-800/60 rounded-lg">
-                {errorMessage}
+        <!-- Dynamic Render: CRYPTO PAYMENT OPTION -->
+        {#if cryptoMap[selectedPaymentMethod]}
+          {@const selectedCrypto = cryptoMap[selectedPaymentMethod]}
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-200">{selectedCrypto.label} Transfer</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Send funds to the target address below</p>
               </div>
-            {/if}
-
-            {#if successMessage}
-              <div class="p-3 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 rounded-lg">
-                {successMessage}
-              </div>
-            {/if}
-
-            <div>
-              <label for="card-number" class="block text-xs font-medium text-gray-300 mb-1">Card Number</label>
-              <input
-                type="text"
-                id="card-number"
-                placeholder="1234 5678 9012 3456"
-                bind:value={cardNumber}
-                required
-                class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
-              />
+              <span class="text-[10px] uppercase font-mono px-2 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                {selectedCrypto.network}
+              </span>
             </div>
 
             <div>
-              <label for="cardholder-name" class="block text-xs font-medium text-gray-300 mb-1">Cardholder Name</label>
-              <input
-                type="text"
-                id="cardholder-name"
-                placeholder="John Doe"
-                bind:value={cardholderName}
-                required
-                class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label for="expiry-date" class="block text-xs font-medium text-gray-300 mb-1">Expiry Date</label>
-                <input
-                  type="text"
-                  id="expiry-date"
-                  placeholder="MM/YY"
-                  bind:value={expiryDate}
-                  required
-                  class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
-                />
-              </div>
-              <div>
-                <label for="cvv" class="block text-xs font-medium text-gray-300 mb-1">CVV</label>
-                <input
-                  type="text"
-                  id="cvv"
-                  placeholder="123"
-                  bind:value={cvv}
-                  required
-                  class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-            >
-              {isSubmitting ? "Processing..." : "Confirm Card Payment"}
-            </button>
-          </form>
-        </div>
-
-        <!-- Crypto Addresses -->
-        <div class="space-y-3">
-          <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Direct Crypto Transfers</h4>
-          {#each crypto as item}
-            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-semibold text-slate-200">{item.label}</span>
-                <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Native</span>
-              </div>
-              
+              <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">
+                Deposit Address
+              </label>
               <div class="flex items-center gap-2">
                 <input
                   type="text"
                   readonly
-                  value={item.address}
-                  class="w-full bg-slate-900 border border-slate-800 text-slate-300 font-mono text-xs px-3 py-2 rounded-lg select-all outline-none"
+                  value={selectedCrypto.address}
+                  class="w-full bg-slate-900 border border-slate-800 text-slate-300 font-mono text-xs px-3 py-2.5 rounded-lg select-all outline-none"
                 />
                 <button
                   type="button"
-                  onclick={() => copyAddress(item.address)}
-                  class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 rounded-lg transition-all shrink-0 active:scale-95"
+                  onclick={() => copyAddress(selectedCrypto.address)}
+                  class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 rounded-lg transition-all shrink-0 active:scale-95"
                 >
-                  {copiedAddress === item.address ? "Copied!" : "Copy"}
+                  {copiedAddress === selectedCrypto.address ? "Copied!" : "Copy Address"}
                 </button>
               </div>
             </div>
-          {/each}
-        </div>
 
-        <!-- External Gateway Options -->
-        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5">
-          <h4 class="text-sm font-semibold text-gray-200 mb-1">Buy via External Providers</h4>
-          <p class="text-xs text-gray-400 mb-4">Purchase crypto through trusted third-party checkouts</p>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {#each [
-              { name: "Bitso", url: "https://bitso.com" },
-              { name: "Paybis", url: "https://paybis.com" },
-              { name: "Banxa", url: "https://banxa.com" },
-              { name: "Moonpay", url: "https://www.moonpay.com" }
-            ] as provider}
+            <!-- Provider On-Ramp Link for selected coin -->
+            <div class="pt-3 border-t border-slate-800/80">
+              <span class="text-xs text-gray-400 block mb-2">Need to buy {selectedPaymentMethod}?</span>
               <a
-                href={provider.url}
+                href="https://www.moonpay.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex items-center justify-between px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-200 rounded-lg transition-all group"
               >
-                <span>Buy with {provider.name}</span>
+                <span>Buy {selectedPaymentMethod} via Moonpay</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-gray-500 group-hover:text-amber-400 transition-colors">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                 </svg>
               </a>
-            {/each}
+            </div>
           </div>
-        </div>
+        {/if}
 
       </div>
     </div>
