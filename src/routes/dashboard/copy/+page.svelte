@@ -176,7 +176,7 @@
             <div>
               <span class="block text-xs text-gray-500">Copy Price</span>
               <span class="block text-sm font-semibold text-gray-200 font-mono mt-1">
-                {data.profile?.currency || '$'}{copyPrice.toLocaleString()}
+                {data.profile?.currency || '$'} {copyPrice.toLocaleString()}
               </span>
             </div>
           </div>
