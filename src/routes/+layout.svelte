@@ -3,6 +3,7 @@
   import favicon from '$lib/assets/favicon.jpg';
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
+  import GoogleTranslate from '$lib/components/GoogleTranslate.svelte';
 
   let { children, data } = $props();
 
@@ -28,3 +29,4 @@
 </svelte:head>
 
 {@render children()}
+<GoogleTranslate pageLanguage="en" />
