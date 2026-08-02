@@ -5,13 +5,22 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
 		<script id="chatway" async="true" src="https://cdn.chatway.app/widget.js?id=v8bINe10W5Cm"></script>
-		<!-- Elfsight Website Translator | Untitled Website Translator -->
-<script src="https://elfsightcdn.com/platform.js" async></script>
+		<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      includedLanguages: 'en,bn,hi,ar,fr,es', // Customize this list
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+		<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <div class="elfsight-app-c9612978-423d-4276-bdb9-74adecebc74b" data-elfsight-app-lazy></div>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents">%sveltekit.body%</div>
+		<div style="display: contents" id="google_translate_element" >%sveltekit.body%</div>
 	</body>
 	
 </html>
