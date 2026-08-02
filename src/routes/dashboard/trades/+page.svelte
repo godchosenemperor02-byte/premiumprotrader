@@ -156,7 +156,7 @@
 				<div class="flex justify-between items-end mb-2">
 					<label for="amount" class="text-xs font-bold uppercase text-[#8e90a0] tracking-wider">Trade Amount ({data.profile.currency})</label>
 					<button type="button" onclick={handleMax} class="text-xs text-[#1e90ff] font-semibold hover:text-[#b7c4ff] transition-colors uppercase tracking-wider">
-						Max: ${data.profile.balance}
+						Max: ${data.profile.capital}
 					</button>
 				</div>
 				<div class="relative group">
