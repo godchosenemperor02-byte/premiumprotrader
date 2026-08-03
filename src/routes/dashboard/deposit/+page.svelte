@@ -41,6 +41,7 @@
         .from("transactions")
         .select("*")
         .eq("user_id", userId)
+        .eq("type", "deposit")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -88,6 +89,7 @@
             amount: parseFloat(amount),
             type: 'deposit',
             status: "pending",
+            method: selectedPaymentMethod,
             created_at: new Date().toISOString()
           }
         ])
