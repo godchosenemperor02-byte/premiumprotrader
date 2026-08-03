@@ -12,6 +12,9 @@
   let expertsCount = $derived(
     Array.isArray(data?.experts) ? data.experts.length : 0
   );
+  let profileList = $derived(
+    Array.isArray(data?.profile) ? data.profile : (data?.profile ? [data.profile] : [])
+  );
 
   const account_types = [
     {title:'Newbie', price:'Free',perks:['Account Registration','Basic Dashboard', 'Market Updates','Standard Support'], logo:'🆓'},
@@ -20,7 +23,7 @@
     {title:'Gold', price:'8,000',perks:['All silver Features','VIP Trade Alerts', 'Market Insights','Faster Withdrawals','Account Manager'], logo:'🥇'},
     {title:'Platinum', price:'15,000',perks:['All Gold Features','Personalized Strategy', '24/7 VIP Support','Exclusive Opportunities','Portfolio Diversification'], logo:'👑'},
     {title:'Diamond', price:'25,000',perks:['All Platinum Features','Custom AI Trading', 'Private Investment Access','Weatlh Planning','Concierge Management'], logo:'💎'}
- ]
+  ];
 
   // Dialog State Management
   let isAddOpen = $state(false);
@@ -190,18 +193,18 @@
   }
 </script>
 
-<div class="space-y-8">
+<div class="max-w-7xl mx-auto space-y-8 p-4 sm:p-6 lg:p-8 font-sans antialiased text-zinc-100">
   <!-- Page Header Title Block -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <h2 class="text-2xl font-bold tracking-tight text-white">Dashboard Overview</h2>
-      <p class="text-sm text-gray-400 mt-1">System-wide operational metrics, user balances, and pending actions.</p>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-zinc-800/60">
+    <div class="space-y-1">
+      <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Dashboard Overview</h2>
+      <p class="text-sm text-zinc-400">System-wide operational metrics, user balances, and administrative controls.</p>
     </div>
     <!-- Quick System Actions -->
     <div class="flex items-center gap-3">
       <button 
         onclick={openAddModal}
-        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-950/50 transition-all flex items-center gap-2"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 rounded-xl text-sm font-medium text-white shadow-lg shadow-blue-500/10 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/40"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -214,44 +217,42 @@
   <!-- Key Performance Metrics Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
     <!-- Card 1: Subscription Plans -->
-    <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Subscription Plans</span>
-        <div class="p-2 bg-blue-950/60 border border-blue-900/40 text-blue-400 rounded-lg">
+    <div class="relative overflow-hidden bg-zinc-900/80 border border-zinc-800 p-5 rounded-2xl shadow-sm hover:border-zinc-700 transition-all group">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Subscription Plans</span>
+        <div class="p-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl group-hover:scale-105 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 18v-6m0 0h18" />
           </svg>
         </div>
       </div>
-      <div class="text-2xl font-mono font-bold text-white">{subscriptionCount}</div>
+      <div class="text-3xl font-mono font-bold text-white tracking-tight">{subscriptionCount}</div>
     </div>
 
     <!-- Card 2: Experts -->
-    <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Experts</span>
-        <div class="p-2 bg-emerald-950/60 border border-emerald-900/40 text-emerald-400 rounded-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75m0-3.75h18m0 0a1.125 1.125 0 0 1 1.125 1.125m0 0v6.75m0 0-1.5 2.25m0 0A1.125 1.125 0 0 0 18.375 21h-12.75m0 0v-6.75" />
-          </svg>
-        </div>
-      </div>
-      <div class="text-2xl font-mono font-bold text-white">{expertsCount}</div>
-    </div>
-
-    <!-- Card 3: Registered Users Count -->
-    <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Registered Users</span>
-        <div class="p-2 bg-purple-950/60 border border-purple-900/40 text-purple-400 rounded-lg">
+    <div class="relative overflow-hidden bg-zinc-900/80 border border-zinc-800 p-5 rounded-2xl shadow-sm hover:border-zinc-700 transition-all group">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Active Experts</span>
+        <div class="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.7-3.024A9.334 9.334 0 0 0 12 3c-4.478 0-8.268 2.943-9.543 7a9.306 9.306 0 0 0 1.563 5.803c.456.913.994 1.76 1.564 2.555m0 0A9.382 9.382 0 0 0 15 19.128" />
           </svg>
         </div>
       </div>
-      <div class="text-2xl font-mono font-bold text-white">
-        {Array.isArray(data?.profile) ? data.profile.length : (data?.profile ? 1 : 0)}
+      <div class="text-3xl font-mono font-bold text-white tracking-tight">{expertsCount}</div>
+    </div>
+
+    <!-- Card 3: Registered Users Count -->
+    <div class="relative overflow-hidden bg-zinc-900/80 border border-zinc-800 p-5 rounded-2xl shadow-sm hover:border-zinc-700 transition-all group sm:col-span-2 lg:col-span-1">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Registered Users</span>
+        <div class="p-2.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl group-hover:scale-105 transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a5.97 5.97 0 00-.942 3.197M12 10.5a3.375 3.375 0 100-6.75 3.375 3.375 0 000 6.75z" />
+          </svg>
+        </div>
       </div>
+      <div class="text-3xl font-mono font-bold text-white tracking-tight">{profileList.length}</div>
     </div>
   </div>
 
@@ -259,194 +260,179 @@
   <div class="space-y-4">
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-lg font-bold text-white">Registered Users</h3>
-        <p class="text-xs text-gray-400 mt-0.5">Manage user accounts, roles, and administrative access.</p>
+        <h3 class="text-lg font-bold text-white">Registered Accounts</h3>
+        <p class="text-xs text-zinc-400 mt-0.5">Manage user profiles, financial allocation, and sub-tier permissions.</p>
       </div>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border border-gray-800 bg-gray-900/60">
-      <table class="w-full text-left border-collapse text-sm">
-        <thead>
-          <tr class="bg-gray-900 border-b border-gray-800 text-gray-400 font-semibold text-xs tracking-wider uppercase">
-            <th class="px-5 py-3.5">Name</th>
-            <th class="px-5 py-3.5">User ID</th>
-            <th class="px-5 py-3.5">Balance</th>
-            <th class="px-5 py-3.5 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-800/60 text-gray-300 font-medium">
-          {#if Array.isArray(data?.profile) && data.profile.length > 0}
-            {#each data.profile as user}
-              <tr class="hover:bg-gray-850/40 transition-colors">
-                <td class="px-5 py-4">
-                  <span class="block text-xs font-mono text-gray-200 font-semibold">{user.first_name?.toUpperCase() ?? 'No Name Specified'}</span>
-                </td>
-                <td class="px-5 py-4 font-mono text-xs text-gray-400">
-                  {user.id}
-                </td>
-                <td class="px-5 py-4">
-                  <span class="px-2.5 py-1 text-[11px] font-bold rounded-md bg-blue-950/80 text-blue-400 border border-blue-900/50">
-                    {user.balance ?? '0.00'}
-                  </span>
-                </td>
-                <td class="px-5 py-4 text-right space-x-2">
-                  <button 
-                    onclick={() => openEditModal(user)}
-                    class="text-xs font-semibold px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg transition-all"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onclick={() => openDeleteModal(user)}
-                    class="text-xs font-semibold px-3 py-1.5 bg-red-950/50 hover:bg-red-900/60 text-red-400 border border-red-900/50 rounded-lg transition-all"
-                  >
-                    Delete
-                  </button>
+    <!-- User Table -->
+    <div class="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 shadow-xl backdrop-blur-md">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-zinc-900/90 border-b border-zinc-800 text-zinc-400 font-semibold text-xs uppercase tracking-wider">
+              <th class="px-6 py-4">User</th>
+              <th class="px-6 py-4">Account ID</th>
+              <th class="px-6 py-4">Balance</th>
+              <th class="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-800/50 text-zinc-300">
+            {#if profileList.length > 0}
+              {#each profileList as user}
+                <tr class="hover:bg-zinc-800/30 transition-colors">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs text-zinc-200">
+                        {user.first_name?.[0]?.toUpperCase() ?? 'U'}
+                      </div>
+                      <div>
+                        <span class="block text-sm font-semibold text-zinc-100">{user.first_name ?? 'Unregistered'} {user.last_name ?? ''}</span>
+                        <span class="block text-xs text-zinc-500">{user.email ?? 'No email bound'}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap font-mono text-xs text-zinc-400">
+                    <span class="bg-zinc-950 px-2.5 py-1 rounded-md border border-zinc-800">{user.id}</span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                      ${user.balance ?? '0.00'}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                    <button 
+                      onclick={() => openEditModal(user)}
+                      class="text-xs font-medium px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg border border-zinc-700 transition-all focus:ring-2 focus:ring-zinc-600/40"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onclick={() => openDeleteModal(user)}
+                      class="text-xs font-medium px-3.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all focus:ring-2 focus:ring-rose-500/40"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              {/each}
+            {:else}
+              <tr>
+                <td colspan="4" class="px-6 py-12 text-center text-zinc-500 text-sm">
+                  No users found in database.
                 </td>
               </tr>
-            {/each}
-          {:else if data?.profile}
-            <!-- Fallback for single object profile -->
-            <tr class="hover:bg-gray-850/40 transition-colors">
-              <td class="px-5 py-4">
-                <span class="block text-xs font-mono text-gray-200 font-semibold">{data.profile.first_name?.toUpperCase() ?? data.profile.email ?? 'No User Specified'}</span>
-              </td>
-              <td class="px-5 py-4 font-mono text-xs text-gray-400">
-                {data.profile.id}
-              </td>
-              <td class="px-5 py-4">
-                <span class="px-2.5 py-1 text-[11px] font-bold rounded-md bg-blue-950/80 text-blue-400 border border-blue-900/50">
-                  {data.profile.balance ?? '0.00'}
-                </span>
-              </td>
-              <td class="px-5 py-4 text-right space-x-2">
-                <button 
-                  onclick={() => openEditModal(data.profile)}
-                  class="text-xs font-semibold px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg transition-all"
-                >
-                  Edit
-                </button>
-                <button 
-                  onclick={() => openDeleteModal(data.profile)}
-                  class="text-xs font-semibold px-3 py-1.5 bg-red-950/50 hover:bg-red-900/60 text-red-400 border border-red-900/50 rounded-lg transition-all"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          {:else}
-            <tr>
-              <td colspan="4" class="px-5 py-8 text-center text-gray-500 text-xs">
-                No users found.
-              </td>
-            </tr>
-          {/if}
-        </tbody>
-      </table>
+            {/if}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- ADD USER MODAL -->
 {#if isAddOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
         <h3 class="text-lg font-bold text-white">Add New User</h3>
-        <button onclick={closeModals} class="text-gray-400 hover:text-white text-sm">✕</button>
+        <button onclick={closeModals} class="text-zinc-400 hover:text-white text-sm p-1 rounded-md hover:bg-zinc-800 transition-colors">✕</button>
       </div>
 
       {#if errorMessage}
-        <div class="p-3 bg-red-950/80 border border-red-900/50 text-red-400 text-xs rounded-xl">
+        <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl">
           {errorMessage}
         </div>
       {/if}
 
       <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="add-first-name">First Name *</label>
-          <input 
-            id="add-first-name"
-            type="text" 
-            placeholder="e.g. Alex"
-            bind:value={addForm.first_name} 
-            disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-          />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="add-first-name">First Name *</label>
+            <input 
+              id="add-first-name"
+              type="text" 
+              placeholder="e.g. Alex"
+              bind:value={addForm.first_name} 
+              disabled={isLoading}
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="add-last-name">Last Name *</label>
+            <input 
+              id="add-last-name"
+              type="text" 
+              placeholder="e.g. Smith"
+              bind:value={addForm.last_name} 
+              disabled={isLoading}
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+            />
+          </div>
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="add-last-name">Last Name *</label>
-          <input 
-            id="add-last-name"
-            type="text" 
-            placeholder="e.g. Smith"
-            bind:value={addForm.last_name} 
-            disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-          />
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="add-email">Email Address</label>
+          <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="add-email">Email Address</label>
           <input 
             id="add-email"
             type="email" 
             placeholder="alex@example.com"
             bind:value={addForm.email} 
             disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           />
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="add-password">Password</label>
+          <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="add-password">Password</label>
           <input 
             id="add-password"
             type="password" 
             placeholder="••••••••"
             bind:value={addForm.password} 
             disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-gray-400 mb-1" for="add-country">Country</label>
+            <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="add-country">Country</label>
             <input 
               id="add-country"
               type="text" 
+              placeholder="e.g. US"
               bind:value={addForm.country} 
               disabled={isLoading}
-              class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
             />
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-400 mb-1" for="add-phone">Phone Number</label>
+            <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="add-phone">Phone Number</label>
             <input 
               id="add-phone"
               type="tel" 
+              placeholder="+1 234..."
               bind:value={addForm.phonenumber} 
               disabled={isLoading}
-              class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
             />
           </div>
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-2">
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
         <button 
           onclick={closeModals} 
           disabled={isLoading}
-          class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-xl transition-all disabled:opacity-50"
+          class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-xl transition-all disabled:opacity-50"
         >
           Cancel
         </button>
         <button 
           onclick={handleAddUser} 
           disabled={isLoading}
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-blue-950/50 disabled:opacity-50 flex items-center gap-2"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-xl transition-all shadow-md shadow-blue-500/10 disabled:opacity-50 flex items-center gap-2"
         >
           {#if isLoading}
             <span>Adding...</span>
@@ -461,65 +447,65 @@
 
 <!-- EDIT USER MODAL -->
 {#if isEditOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
         <h3 class="text-lg font-bold text-white">Edit User Profile</h3>
-        <button onclick={closeModals} class="text-gray-400 hover:text-white text-sm">✕</button>
+        <button onclick={closeModals} class="text-zinc-400 hover:text-white text-sm p-1 rounded-md hover:bg-zinc-800 transition-colors">✕</button>
       </div>
 
       {#if errorMessage}
-        <div class="p-3 bg-red-950/80 border border-red-900/50 text-red-400 text-xs rounded-xl">
+        <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl">
           {errorMessage}
         </div>
       {/if}
 
       <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="profit">Profit</label>
-          <input 
-            id="profit"
-            type="number" 
-            bind:value={editForm.profit} 
-            disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="capital">Capital</label>
-          <input 
-            id="capital"
-            type="number" 
-            bind:value={editForm.capital} 
-            disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-          />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="profit">Profit</label>
+            <input 
+              id="profit"
+              type="number" 
+              bind:value={editForm.profit} 
+              disabled={isLoading}
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="capital">Capital</label>
+            <input 
+              id="capital"
+              type="number" 
+              bind:value={editForm.capital} 
+              disabled={isLoading}
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+            />
+          </div>
         </div>
 
-        <!-- SIGNAL INPUT -->
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="signal">Signal Value</label>
+          <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="signal">Signal Value</label>
           <input 
             id="signal"
             type="number" 
             bind:value={editForm.signal} 
             disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           />
         </div>
 
-        <!-- ACCOUNT SIGNAL SELECT INPUT -->
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="account_signal">Account Signal Plan</label>
+          <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="account_signal">Account Signal Plan</label>
           <select 
             id="account_signal"
             bind:value={editForm.account_signal} 
             disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           >
             {#if Array.isArray(data?.subscription) && data.subscription.length > 0}
               {#each data.subscription as sub}
-                <option value={sub.title }>
+                <option value={sub.title}>
                   {sub.name ?? sub.title ?? sub.id}
                 </option>
               {/each}
@@ -530,34 +516,36 @@
         </div>
         
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1" for="copied_expert">Copied Expert</label>
+          <label class="block text-xs font-medium text-zinc-400 mb-1.5" for="copied_expert">Copied Expert</label>
           <select 
             id="copied_expert"
             bind:value={editForm.copy_expert} 
             disabled={isLoading}
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           >
-            {#each data.experts as sub}
-              <option value={sub.name }>
-                {sub.name}
-              </option>
-            {/each}
+            {#if Array.isArray(data?.experts)}
+              {#each data.experts as expert}
+                <option value={expert.name}>
+                  {expert.name}
+                </option>
+              {/each}
+            {/if}
           </select>
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-2">
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
         <button 
           onclick={closeModals} 
           disabled={isLoading}
-          class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-xl transition-all disabled:opacity-50"
+          class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-xl transition-all disabled:opacity-50"
         >
           Cancel
         </button>
         <button 
           onclick={handleSaveUser} 
           disabled={isLoading}
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-blue-950/50 disabled:opacity-50 flex items-center gap-2"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-xl transition-all shadow-md shadow-blue-500/10 disabled:opacity-50 flex items-center gap-2"
         >
           {#if isLoading}
             <span>Saving...</span>
@@ -572,10 +560,10 @@
 
 <!-- DELETE CONFIRMATION MODAL -->
 {#if isDeleteOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
-      <div class="flex items-center gap-3 text-red-400">
-        <div class="p-2 bg-red-950/80 border border-red-900/50 rounded-xl">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center gap-3 text-rose-400">
+        <div class="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0l-10.998 19.24c-.865 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378" />
           </svg>
@@ -584,27 +572,27 @@
       </div>
 
       {#if errorMessage}
-        <div class="p-3 bg-red-950/80 border border-red-900/50 text-red-400 text-xs rounded-xl">
+        <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl">
           {errorMessage}
         </div>
       {/if}
 
-      <p class="text-xs text-gray-400 leading-relaxed">
-        Are you sure you want to delete <span class="text-gray-200 font-mono font-semibold">{selectedUser?.first_name ?? selectedUser?.email ?? 'this user'}</span>? This action cannot be undone.
+      <p class="text-xs text-zinc-400 leading-relaxed">
+        Are you sure you want to delete <span class="text-zinc-200 font-mono font-semibold">{selectedUser?.first_name ?? selectedUser?.email ?? 'this user'}</span>? This action is permanent and cannot be undone.
       </p>
 
       <div class="flex items-center justify-end gap-3 pt-2">
         <button 
           onclick={closeModals} 
           disabled={isLoading}
-          class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-xl transition-all disabled:opacity-50"
+          class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-xl transition-all disabled:opacity-50"
         >
           Cancel
         </button>
         <button 
           onclick={handleDeleteUser} 
           disabled={isLoading}
-          class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-red-950/50 disabled:opacity-50 flex items-center gap-2"
+          class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-medium rounded-xl transition-all shadow-md shadow-rose-500/10 disabled:opacity-50 flex items-center gap-2"
         >
           {#if isLoading}
             <span>Deleting...</span>
