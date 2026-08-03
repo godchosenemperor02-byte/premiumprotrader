@@ -297,7 +297,7 @@
 
 	<!-- Notification Toast Container -->
 	{#if showAlert}
-		<div class="fixed bottom-6 right-6 max-w-md z-50 transition-all duration-300">
+		<div class="fixed bottom-15 right-10 max-w-md z-50 transition-all duration-300">
 			<div
 				class={`rounded-xl border backdrop-blur-md shadow-xl p-4 flex items-start gap-3.5 ${
 					isSuccess
