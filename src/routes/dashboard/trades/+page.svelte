@@ -13,7 +13,9 @@
 	let showAlert = $state(false);
 	let alertMessage = $state('');
 	let isSuccess = $state(true);
+	let isFullscreen = $state(false);
 
+	let chartCardRef;
 	let timer;
 
 	const leverageOptions = ['1x', '2x', '5x', '10x', '25x', '50x', '100x'];
@@ -45,6 +47,26 @@
 			showAlert = false;
 		}, 5000);
 	};
+
+	// Toggle Fullscreen Functionality
+	async function toggleFullscreen() {
+		if (!chartCardRef) return;
+
+		try {
+			if (!document.fullscreenElement) {
+				if (chartCardRef.requestFullscreen) {
+					await chartCardRef.requestFullscreen();
+				}
+			} else {
+				if (document.exitFullscreen) {
+					await document.exitFullscreen();
+				}
+			}
+		} catch (err) {
+			// Fallback toggling via state if Browser API blocks request
+			isFullscreen = !isFullscreen;
+		}
+	}
 
 	// Safe TradingView script injector
 	function loadTradingViewScript() {
@@ -79,8 +101,16 @@
 
 	onMount(() => {
 		loadTradingViewScript();
+
+		const handleFullscreenChange = () => {
+			isFullscreen = !!document.fullscreenElement;
+		};
+
+		document.addEventListener("fullscreenchange", handleFullscreenChange);
+
 		return () => {
 			if (timer) clearTimeout(timer);
+			document.removeEventListener("fullscreenchange", handleFullscreenChange);
 		};
 	});
 </script>
@@ -110,10 +140,42 @@
 		</Card>
 	</div>
 
-	<!-- TradingView Chart Widget -->
-	<Card class="bg-slate-900/60 border-slate-800/80 backdrop-blur-md overflow-hidden min-h-[520px] shadow-sm">
-		<div id="tv-advanced-chart" class="w-full h-[520px]"></div>
-	</Card>
+	<!-- TradingView Chart Widget with Fullscreen Toggle -->
+	<div bind:this={chartCardRef} class="relative group">
+		<Card class={`bg-slate-900/60 border-slate-800/80 backdrop-blur-md overflow-hidden shadow-sm transition-all duration-300 ${
+			isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen w-screen bg-slate-950' : 'min-h-[520px]'
+		}`}>
+			<!-- Top Control Bar Overlay -->
+			<div class="absolute top-3 right-3 z-20 flex items-center gap-2">
+				<button
+					type="button"
+					onclick={toggleFullscreen}
+					aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+					class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-200 backdrop-blur-md shadow-lg hover:text-white transition-all active:scale-95 cursor-pointer"
+				>
+					{#if isFullscreen}
+						<!-- Compress / Exit Icon -->
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9L4 4m0 0l5 0m-5 0l0 5m11 0l5-5m0 0l-5 0m5 0l0 5M9 15l-5 5m0 0l5 0m-5 0l0-5m11 0l5 5m0 0l-5 0m5 0l0-5" />
+						</svg>
+						<span>Exit Fullscreen</span>
+					{:else}
+						<!-- Expand Icon -->
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+						</svg>
+						<span>Fullscreen</span>
+					{/if}
+				</button>
+			</div>
+
+			<!-- Chart Container -->
+			<div 
+				id="tv-advanced-chart" 
+				class={`w-full transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[520px]'}`}
+			></div>
+		</Card>
+	</div>
 
 	<!-- Order Execution Section -->
 	<Card class="bg-slate-900/60 border-slate-800/80 backdrop-blur-md shadow-md overflow-hidden">
@@ -247,7 +309,7 @@
 				<button
 					type="button"
 					onclick={() => trade('buy')}
-					class="py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
+					class="py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -258,7 +320,7 @@
 				<button
 					type="button"
 					onclick={() => trade('sell')}
-					class="py-3 px-4 bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
+					class="py-3 px-4 bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
@@ -333,7 +395,7 @@
 				<button
 					type="button"
 					onclick={() => (showAlert = false)}
-					class="shrink-0 text-slate-400 hover:text-white transition-colors p-1"
+					class="shrink-0 text-slate-400 hover:text-white transition-colors p-1 cursor-pointer"
 				>
 					✕
 				</button>
