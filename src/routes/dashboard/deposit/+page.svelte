@@ -86,7 +86,7 @@
           {
             user_id: userId,
             amount: parseFloat(amount),
-            payment_method: selectedPaymentMethod,
+            type: 'deposit',
             status: "pending",
             created_at: new Date().toISOString()
           }
