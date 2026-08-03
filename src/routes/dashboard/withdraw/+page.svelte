@@ -345,7 +345,7 @@
                   {new Date(tx.created_at || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </td>
                 <td class="px-4 py-3.5 font-medium text-slate-200 text-xs max-w-xs truncate">
-                  {tx.method || tx.payment_method}
+                  {tx.method}
                 </td>
                 <td class="px-4 py-3.5 font-mono text-rose-400 font-semibold">
                   -{data.profile?.currency || '$'} {Number(tx.amount).toFixed(2)}
