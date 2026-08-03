@@ -358,7 +358,7 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                      ${user.balance ?? '0.00'}
+                      {user.currency} {user.balance ?? '0.00'}
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
