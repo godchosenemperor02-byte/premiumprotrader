@@ -94,7 +94,7 @@
           amount: parseFloat(amount),
           type: "withdraw",
           status: "pending",
-          payment_method: selectedMethod.toUpperCase(),
+          method: selectedMethod.toUpperCase(),
           method: destinationDetails,
           created_at: new Date().toISOString()
         }
