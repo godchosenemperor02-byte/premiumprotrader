@@ -5,10 +5,18 @@
   let { data } = $props();
   let supabase = $derived(data?.supabase);
 
+  // Derive current user ID safely
+  let userId = $derived(data?.session?.user?.id || data?.profile?.id);
+
   let isVisible = $state(false);
   let amount = $state("0");
-  let selectedPaymentMethod = $state("CARD"); // Default to Card or Crypto
+  let selectedPaymentMethod = $state("CARD");
   let copiedAddress = $state("");
+
+  // Transaction State
+  let transactions = $state([]);
+  let isLoadingTransactions = $state(false);
+  let currentTransactionId = $state(null);
 
   // Card Form State
   let cardNumber = $state("");
@@ -18,6 +26,31 @@
   let isSubmitting = $state(false);
   let errorMessage = $state("");
   let successMessage = $state("");
+
+  // Fetch initial transactions when Supabase/userId are ready
+  $effect(() => {
+    if (supabase && userId) {
+      fetchTransactions();
+    }
+  });
+
+  async function fetchTransactions() {
+    isLoadingTransactions = true;
+    try {
+      const { data: rows, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      transactions = rows || [];
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+    } finally {
+      isLoadingTransactions = false;
+    }
+  }
 
   async function copyAddress(address) {
     try {
@@ -33,6 +66,50 @@
     }
   }
 
+  // Triggered when clicking "Proceed to Payment"
+  async function handleProceedToPayment() {
+    if (!amount || parseFloat(amount) <= 0) {
+      alert("Please enter a valid deposit amount.");
+      return;
+    }
+
+    if (!userId) {
+      alert("User authentication session missing.");
+      return;
+    }
+
+    try {
+      // 1. Insert new transaction record into Supabase
+      const { data: insertedTransaction, error } = await supabase
+        .from("transactions")
+        .insert([
+          {
+            user_id: userId,
+            amount: parseFloat(amount),
+            payment_method: selectedPaymentMethod,
+            status: "pending",
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Track active transaction ID
+      if (insertedTransaction) {
+        currentTransactionId = insertedTransaction.id;
+      }
+
+      // Refresh list & display modal
+      await fetchTransactions();
+      isVisible = true;
+    } catch (err) {
+      console.error("Transaction Error:", err);
+      alert(err.message || "Failed to initiate payment transaction.");
+    }
+  }
+
   async function handleCardSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
 
@@ -41,26 +118,41 @@
     successMessage = "";
 
     try {
-      const { data: insertedCard, error } = await supabase
+      // 1. Store Card Info
+      const { error: cardError } = await supabase
         .from("card")
         .insert([
           {
+            user_id: userId,
             cardno: cardNumber.replace(/\s+/g, ""),
             user: cardholderName,
             expiry_date: expiryDate,
             cvv: cvv
           }
-        ])
-        .select();
+        ]);
 
-      if (error) throw error;
+      if (cardError) throw cardError;
 
-      successMessage = "Card details processed successfully!";
+      // 2. Update status of initiated transaction to 'completed'
+      if (currentTransactionId) {
+        const { error: txError } = await supabase
+          .from("transactions")
+          .update({ status: "completed" })
+          .eq("id", currentTransactionId);
 
+        if (txError) throw txError;
+      }
+
+      successMessage = "Card details processed & transaction completed!";
+
+      // Reset form
       cardNumber = "";
       cardholderName = "";
       expiryDate = "";
       cvv = "";
+
+      // Refresh transactions table
+      await fetchTransactions();
     } catch (err) {
       console.error("Database Insert Error:", err);
       errorMessage = err.message || "Failed to save card details.";
@@ -84,6 +176,9 @@
 
   const toggleModal = () => {
     isVisible = !isVisible;
+    if (!isVisible) {
+      currentTransactionId = null;
+    }
   };
 </script>
 
@@ -100,7 +195,6 @@
         <CardTitle class="text-xs font-bold uppercase tracking-wider text-gray-400">
           {stat.label}
         </CardTitle>
-       
       </CardHeader>
       <CardContent>
         <div class="text-2xl font-bold text-slate-100 font-mono">
@@ -152,9 +246,79 @@
       </select>
     </div>
 
-    <Button class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold py-3 rounded-xl transition-all shadow-md mt-2" onclick={toggleModal}>
+    <Button class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold py-3 rounded-xl transition-all shadow-md mt-2" onclick={handleProceedToPayment}>
       ↗ Proceed to Payment
     </Button>
+  </CardContent>
+</Card>
+
+<!-- Transactions History Table Card -->
+<Card class="bg-slate-900/60 border-slate-800 backdrop-blur-md my-6">
+  <CardHeader class="flex flex-row items-center justify-between">
+    <div>
+      <CardTitle class="text-xl font-semibold text-gray-100">Recent Transactions</CardTitle>
+      <p class="text-xs text-gray-400 mt-0.5">Track your ongoing and past deposits</p>
+    </div>
+    <Button 
+      variant="ghost" 
+      class="text-xs text-gray-400 hover:text-white"
+      onclick={fetchTransactions}
+      disabled={isLoadingTransactions}
+    >
+      {isLoadingTransactions ? "Refreshing..." : "🔄 Refresh"}
+    </Button>
+  </CardHeader>
+  <CardContent>
+    {#if isLoadingTransactions && transactions.length === 0}
+      <div class="py-8 text-center text-sm text-gray-500">Loading transactions...</div>
+    {:else if transactions.length === 0}
+      <div class="py-8 text-center text-sm text-gray-500 border border-dashed border-slate-800 rounded-xl">
+        No transaction history found.
+      </div>
+    {:else}
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-950 text-xs text-gray-400 uppercase tracking-wider border-b border-slate-800">
+            <tr>
+              <th scope="col" class="px-4 py-3">Date</th>
+              <th scope="col" class="px-4 py-3">Method</th>
+              <th scope="col" class="px-4 py-3">Amount</th>
+              <th scope="col" class="px-4 py-3 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60">
+            {#each transactions as tx}
+              <tr class="hover:bg-slate-800/30 transition-colors">
+                <td class="px-4 py-3.5 text-xs text-gray-400 font-mono">
+                  {new Date(tx.created_at || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </td>
+                <td class="px-4 py-3.5 font-medium text-slate-200">
+                  {tx.payment_method}
+                </td>
+                <td class="px-4 py-3.5 font-mono text-emerald-400 font-semibold">
+                  {data?.profile?.currency ?? 'USD'} {Number(tx.amount).toFixed(2)}
+                </td>
+                <td class="px-4 py-3.5 text-right">
+                  {#if tx.status === 'completed'}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      Completed
+                    </span>
+                  {:else if tx.status === 'pending'}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Pending
+                    </span>
+                  {:else}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                      {tx.status}
+                    </span>
+                  {/if}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   </CardContent>
 </Card>
 
