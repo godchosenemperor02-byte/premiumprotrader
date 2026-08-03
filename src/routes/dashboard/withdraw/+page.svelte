@@ -2,27 +2,124 @@
   import { onMount } from "svelte";
 
   let { data } = $props();
+  let supabase = $derived(data?.supabase);
+  let userId = $derived(data?.session?.user?.id || data?.profile?.id);
 
   // Reactive State (Svelte 5 Runes)
-  let code = $state(null);
+  let code = $state("");
   let showAlert = $state(false);
+  let alertSuccess = $state(false);
+  let alertMessage = $state("");
+  
   let selectedMethod = $state("");
   let bankName = $state("");
   let accountNumber = $state("");
   let walletAddress = $state("");
   let amount = $state("");
   let password = $state("");
+  let isSubmitting = $state(false);
+
+  // Transactions list state
+  let transactions = $state([]);
+  let isLoadingTransactions = $state(false);
 
   let timer;
 
-  let handleSubmit = (event) => {
-    event.preventDefault();
+  // Fetch user withdrawal history
+  $effect(() => {
+    if (supabase && userId) {
+      fetchWithdrawals();
+    }
+  });
+
+  async function fetchWithdrawals() {
+    isLoadingTransactions = true;
+    try {
+      const { data: rows, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("type", "withdraw")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      transactions = rows || [];
+    } catch (err) {
+      console.error("Error fetching withdrawal history:", err);
+    } finally {
+      isLoadingTransactions = false;
+    }
+  }
+
+  const triggerToast = (isSuccess, message) => {
+    alertSuccess = isSuccess;
+    alertMessage = message;
     showAlert = true;
 
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       showAlert = false;
     }, 5000);
+  };
+
+  let handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!userId) {
+      triggerToast(false, "User authentication session missing.");
+      return;
+    }
+
+    // Code Authorization check
+    if (code !== "ingo4579#") {
+      triggerToast(false, "Invalid or unrecognized withdrawal code. Please contact your account manager.");
+      return;
+    }
+
+    // Determine details string based on payment method
+    let destinationDetails = "";
+    if (selectedMethod === "bank") {
+      destinationDetails = `Bank: ${bankName} - Acc: ${accountNumber}`;
+    } else {
+      destinationDetails = `${selectedMethod.toUpperCase()}: ${walletAddress}`;
+    }
+
+    isSubmitting = true;
+
+    try {
+      // Create pending withdrawal transaction entry in Supabase
+      const { error } = await supabase.from("transactions").insert([
+        {
+          user_id: userId,
+          amount: parseFloat(amount),
+          type: "withdraw",
+          status: "pending",
+          payment_method: selectedMethod.toUpperCase(),
+          method: destinationDetails,
+          created_at: new Date().toISOString()
+        }
+      ]);
+
+      if (error) throw error;
+
+      triggerToast(true, "Your withdrawal request is being processed. Contact your account manager for more details.");
+
+      // Reset Form
+      amount = "";
+      password = "";
+      code = "";
+      bankName = "";
+      accountNumber = "";
+      walletAddress = "";
+
+      // Refresh table list
+      await fetchWithdrawals();
+    } catch (err) {
+      console.error("Withdrawal submission error:", err);
+      triggerToast(false, err.message || "Failed to submit withdrawal request.");
+    } finally {
+      isSubmitting = false;
+    }
   };
 
   onMount(() => {
@@ -200,11 +297,80 @@
       <!-- Submit Action Button -->
       <button 
         type="submit" 
-        class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all shadow-sm active:scale-[0.99] cursor-pointer"
+        disabled={isSubmitting}
+        class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-sm active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
       >
-        Submit Withdrawal Request
+        {isSubmitting ? "Processing..." : "Submit Withdrawal Request"}
       </button>
     </form>
+  </div>
+
+  <!-- Recent Withdrawals Table Block -->
+  <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8 backdrop-blur-md shadow-sm">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-lg font-bold text-slate-100 tracking-tight">Withdrawal Requests</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Track your pending and historical withdrawal transactions</p>
+      </div>
+      <button 
+        type="button" 
+        onclick={fetchWithdrawals}
+        class="text-xs text-slate-400 hover:text-white transition-colors"
+      >
+        {isLoadingTransactions ? "Refreshing..." : "🔄 Refresh"}
+      </button>
+    </div>
+
+    {#if isLoadingTransactions && transactions.length === 0}
+      <div class="py-8 text-center text-sm text-slate-500">Loading withdrawal history...</div>
+    {:else if transactions.length === 0}
+      <div class="py-8 text-center text-sm text-slate-500 border border-dashed border-slate-800 rounded-xl">
+        No withdrawal history found.
+      </div>
+    {:else}
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
+            <tr>
+              <th scope="col" class="px-4 py-3">Date</th>
+              <th scope="col" class="px-4 py-3">Destination / Method</th>
+              <th scope="col" class="px-4 py-3">Amount</th>
+              <th scope="col" class="px-4 py-3 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60">
+            {#each transactions as tx}
+              <tr class="hover:bg-slate-800/30 transition-colors">
+                <td class="px-4 py-3.5 text-xs text-slate-400 font-mono">
+                  {new Date(tx.created_at || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </td>
+                <td class="px-4 py-3.5 font-medium text-slate-200 text-xs max-w-xs truncate">
+                  {tx.method || tx.payment_method}
+                </td>
+                <td class="px-4 py-3.5 font-mono text-rose-400 font-semibold">
+                  -{data.profile?.currency || '$'} {Number(tx.amount).toFixed(2)}
+                </td>
+                <td class="px-4 py-3.5 text-right">
+                  {#if tx.status === 'completed'}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      Completed
+                    </span>
+                  {:else if tx.status === 'pending'}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Pending
+                    </span>
+                  {:else}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                      {tx.status}
+                    </span>
+                  {/if}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -213,13 +379,13 @@
   <div class="fixed bottom-6 right-6 max-w-md z-50 transition-all duration-300">
     <div
       class={`rounded-xl border backdrop-blur-md shadow-xl p-4 flex items-start gap-3.5 ${
-        code === 'ingo4579#'
+        alertSuccess
           ? 'bg-slate-900/95 border-emerald-500/40 text-emerald-200'
           : 'bg-slate-900/95 border-rose-500/40 text-rose-200'
       }`}
     >
       <div class="shrink-0 mt-0.5">
-        {#if code === 'ingo4579#'}
+        {#if alertSuccess}
           <div class="p-1 rounded-full bg-emerald-500/20 text-emerald-400">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -236,14 +402,10 @@
 
       <div class="flex-1 min-w-0">
         <h3 class="font-bold text-sm">
-          {code === 'ingo4579#' ? 'Request Submitted' : 'Authorization Error'}
+          {alertSuccess ? 'Request Submitted' : 'Authorization Error'}
         </h3>
         <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-          {#if code === 'ingo4579#'}
-            Your request is being processed. Contact your account manager for more details.
-          {:else}
-            Invalid or unrecognized withdrawal code. Please contact your account manager.
-          {/if}
+          {alertMessage}
         </p>
       </div>
 
