@@ -96,46 +96,80 @@
     {@const isSubscribed = plan.title?.trim() === data.profile?.subscription?.trim()}
     {@const isLoading = subscribeLoading === plan.title}
     {@const planPrice = Number(plan.price ?? 0)}
+<Card class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gray-900/60 p-6 backdrop-blur-md transition-all duration-300 hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-500/5">
+  
+  <!-- Subtle Hover Ambient Glow -->
+  <div class="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-500/10 blur-2xl transition-all duration-300 group-hover:bg-amber-500/20"></div>
 
-    <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm flex flex-col justify-between">
-      <CardHeader>
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="gold" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Card Header -->
+  <CardHeader class="p-0 space-y-4">
+    <div class="flex items-center justify-between">
+      <!-- Icon Container -->
+      <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 3v18h18"/>
           <path d="m19 9-5 5-4-4-3 3"/>
         </svg>
-        <CardTitle class="text-2xl text-gray-200 font-light font-mono mt-2">{plan.title}</CardTitle>
-      </CardHeader>
+      </div>
 
-      <CardContent class="flex flex-col justify-between flex-1">
-       <p class="text-1xl text-gray-200 font-bold mt-2 text-center">
-            {plan.access} days access 
-          </p>
-        <div>
-          <p class="text-sm text-gray-400">{plan.desc}</p>
-          <p class="text-2xl text-gray-200 font-bold mt-2">
-            {data.profile?.currency || '$'} {planPrice.toLocaleString()}
-          </p>
-        </div>
+      <!-- Access Badge -->
+      <span class="inline-flex items-center rounded-full bg-gray-800/80 px-3 py-1 text-xs font-semibold text-gray-300 border border-gray-700/60">
+        {plan.access} Days Access
+      </span>
+    </div>
 
-        <div class="mt-4">
-          {#if isSubscribed}
-            <button 
-              disabled 
-              class="bg-amber-300 w-full p-1.5 rounded-md text-center text-lg font-bold text-black opacity-50 cursor-not-allowed"
-            >
-              Subscribed
-            </button>
+    <!-- Title & Description -->
+    <div>
+      <CardTitle class="text-xl font-bold tracking-tight text-white">{plan.title}</CardTitle>
+      {#if plan.desc}
+        <p class="mt-1.5 text-sm leading-relaxed text-gray-400">{plan.desc}</p>
+      {/if}
+    </div>
+  </CardHeader>
+
+  <!-- Card Content -->
+  <CardContent class="p-0 mt-6 flex flex-col justify-between flex-1">
+    <!-- Price Section -->
+    <div class="mb-6 flex items-baseline gap-1">
+      <span class="text-3xl font-extrabold tracking-tight text-white">
+        {data.profile?.currency || '$'}{planPrice.toLocaleString()}
+      </span>
+      <span class="text-xs font-medium text-gray-400">/ plan</span>
+    </div>
+
+    <!-- Action Button -->
+    <div class="mt-auto">
+      {#if isSubscribed}
+        <button 
+          disabled 
+          class="w-full rounded-xl bg-gray-800/80 px-4 py-3 text-sm font-semibold text-gray-400 border border-gray-700/50 cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Active Plan
+        </button>
+      {:else}
+        <button 
+          onclick={() => handleSubscribeSignal(plan)}
+          disabled={isLoading || !!subscribeLoading}
+          class="w-full rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-gray-950 shadow-md transition-all duration-200 hover:bg-amber-300 hover:shadow-lg hover:shadow-amber-500/20 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-400 disabled:active:scale-100"
+        >
+          {#if isLoading || !!subscribeLoading}
+            <span class="flex items-center justify-center gap-2">
+              <svg class="h-4 w-4 animate-spin text-gray-950" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Subscribing...
+            </span>
           {:else}
-            <button 
-              onclick={() => handleSubscribeSignal(plan)}
-              disabled={isLoading || !!subscribeLoading}
-              class="bg-amber-300 w-full p-1.5 rounded-md text-center text-lg font-bold text-black hover:bg-amber-400 ease-in-out transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Subscribing...' : 'Subscribe'}
-            </button>
+            Subscribe Now
           {/if}
-        </div>
-      </CardContent>
-    </Card>
+        </button>
+      {/if}
+    </div>
+  </CardContent>
+</Card>
   {/each}
 </div>
