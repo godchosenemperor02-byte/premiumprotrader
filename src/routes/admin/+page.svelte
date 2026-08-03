@@ -31,9 +31,11 @@
   let isDeleteOpen = $state(false);
   let selectedUser = $state(null);
 
-  // Status & Error Management
+  // Status, Error & Feedback Management
   let isLoading = $state(false);
+  let isVerifyingDeposit = $state(false);
   let errorMessage = $state('');
+  let successMessage = $state('');
 
   // Form Fields for Add Modal
   let addForm = $state({
@@ -66,6 +68,7 @@
       phonenumber: ''
     };
     errorMessage = '';
+    successMessage = '';
     isAddOpen = true;
   }
 
@@ -85,12 +88,14 @@
       copy_expert: user.copy_expert ?? ''
     };
     errorMessage = '';
+    successMessage = '';
     isEditOpen = true;
   }
 
   function openDeleteModal(user) {
     selectedUser = user;
     errorMessage = '';
+    successMessage = '';
     isDeleteOpen = true;
   }
 
@@ -100,7 +105,63 @@
     isDeleteOpen = false;
     selectedUser = null;
     errorMessage = '';
+    successMessage = '';
     isLoading = false;
+    isVerifyingDeposit = false;
+  }
+
+  // --- SUPABASE VERIFY LAST DEPOSIT LOGIC ---
+  async function handleVerifyLastDeposit() {
+    if (!editForm.id || !supabase) return;
+
+    isVerifyingDeposit = true;
+    errorMessage = '';
+    successMessage = '';
+
+    // 1. Fetch the latest deposit transaction for this user
+    const { data: transactions, error: fetchError } = await supabase
+      .from('transactions')
+      .select('id, status')
+      .eq('user_id', editForm.id)
+      .eq('type', 'deposit')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (fetchError) {
+      errorMessage = `Failed to fetch last deposit: ${fetchError.message}`;
+      isVerifyingDeposit = false;
+      return;
+    }
+
+    if (!transactions || transactions.length === 0) {
+      errorMessage = 'No deposit transaction found for this user.';
+      isVerifyingDeposit = false;
+      return;
+    }
+
+    const lastDeposit = transactions[0];
+
+    if (lastDeposit.status === 'completed') {
+      successMessage = 'The latest deposit is already marked as completed.';
+      isVerifyingDeposit = false;
+      return;
+    }
+
+    // 2. Update the transaction status to 'completed'
+    const { error: updateError } = await supabase
+      .from('transactions')
+      .update({ status: 'completed' })
+      .eq('id', lastDeposit.id);
+
+    isVerifyingDeposit = false;
+
+    if (updateError) {
+      errorMessage = `Failed to verify deposit: ${updateError.message}`;
+      return;
+    }
+
+    successMessage = 'Last deposit verified and marked as completed successfully!';
+    await invalidateAll();
   }
 
   // --- SUPABASE ADD USER LOGIC ---
@@ -460,6 +521,39 @@
         </div>
       {/if}
 
+      {#if successMessage}
+        <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl">
+          {successMessage}
+        </div>
+      {/if}
+
+      <!-- Verify Last Deposit Action Section -->
+      <div class="p-3.5 bg-zinc-950/60 border border-zinc-800 rounded-xl flex items-center justify-between gap-3">
+        <div>
+          <span class="block text-xs font-semibold text-zinc-200">Deposit Action</span>
+          <span class="block text-[11px] text-zinc-400">Mark user's latest deposit as completed</span>
+        </div>
+        <button
+          type="button"
+          onclick={handleVerifyLastDeposit}
+          disabled={isVerifyingDeposit || isLoading}
+          class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+        >
+          {#if isVerifyingDeposit}
+            <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Verifying...</span>
+          {:else}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Verify Last Deposit</span>
+          {/if}
+        </button>
+      </div>
+
       <div class="space-y-4">
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -468,7 +562,7 @@
               id="profit"
               type="number" 
               bind:value={editForm.profit} 
-              disabled={isLoading}
+              disabled={isLoading || isVerifyingDeposit}
               class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
             />
           </div>
@@ -478,7 +572,7 @@
               id="capital"
               type="number" 
               bind:value={editForm.capital} 
-              disabled={isLoading}
+              disabled={isLoading || isVerifyingDeposit}
               class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
             />
           </div>
@@ -490,7 +584,7 @@
             id="signal"
             type="number" 
             bind:value={editForm.signal} 
-            disabled={isLoading}
+            disabled={isLoading || isVerifyingDeposit}
             class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           />
         </div>
@@ -500,7 +594,7 @@
           <select 
             id="account_signal"
             bind:value={editForm.account_signal} 
-            disabled={isLoading}
+            disabled={isLoading || isVerifyingDeposit}
             class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           >
             {#if Array.isArray(data?.subscription) && data.subscription.length > 0}
@@ -520,7 +614,7 @@
           <select 
             id="copied_expert"
             bind:value={editForm.copy_expert} 
-            disabled={isLoading}
+            disabled={isLoading || isVerifyingDeposit}
             class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           >
             {#if Array.isArray(data?.experts)}
@@ -537,14 +631,14 @@
       <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
         <button 
           onclick={closeModals} 
-          disabled={isLoading}
+          disabled={isLoading || isVerifyingDeposit}
           class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium rounded-xl transition-all disabled:opacity-50"
         >
           Cancel
         </button>
         <button 
           onclick={handleSaveUser} 
-          disabled={isLoading}
+          disabled={isLoading || isVerifyingDeposit}
           class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-xl transition-all shadow-md shadow-blue-500/10 disabled:opacity-50 flex items-center gap-2"
         >
           {#if isLoading}
