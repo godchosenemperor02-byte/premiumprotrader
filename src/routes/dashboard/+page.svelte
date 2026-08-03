@@ -1,78 +1,182 @@
 <script>
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
   import { onMount } from "svelte";
-  
-  let { data } = $props()
 
-  // Make stats reactive with state binding
+  let { data } = $props();
+
+  // Reactive stats state
   let stats = $state([
-    { label: "Total Balance", value: data.profile.balance, change: "+12.4%", up: true },
-    { label: "Profits", value: data.profile.profit, change: "+8.2%", up: true },
-    { label: "Capital", value: data.profile.capital, change: "+91.9%", up: true },
+    { label: "Total Balance", value: data.profile?.balance ?? 0, change: "+12.4%", up: true },
+    { label: "Profits", value: data.profile?.profit ?? 0, change: "+8.2%", up: true },
+    { label: "Capital", value: data.profile?.capital ?? 0, change: "+91.9%", up: true }
   ]);
-  
-  // Market sentiment state - fluctuates between 50-100
+
+  // Market sentiment state (50-100)
   let marketSentiment = $state({
     strength: 75,
-    status: "Strong",
+    status: "Strong"
   });
 
-  // Signal strength state - reflects user's signal column value
+  // Signal strength state
   let signalStrength = $state({
-    strength: data.profile.signal || 0,
-    status: "Weak",
+    strength: data.profile?.signal || 0,
+    status: "Weak"
   });
-  
-  // Function to generate random change
-  const generateRandomChange = () => {
-    const isPositive = Math.random() > 0.5;
-    const value = (Math.random() * 20).toFixed(1); // 0 to 20%
-    return {
-      change: `${isPositive ? '+' : '-'}${value}%`,
-      up: isPositive
-    };
-  };
-  
-  // Function to generate market sentiment between 50-100
-  const generateMarketSentiment = () => {
-    const strength = Math.floor(Math.random() * 51) + 50; // 50-100
-    let status = "Weak";
-    if (strength >= 75) status = "Strong";
-    else if (strength >= 60) status = "Good";
-    
-    return { strength, status };
-  };
 
-  // Function to get status based on signal strength
+  // Dynamic status utilities
   const getSignalStatus = (strength) => {
     if (strength >= 75) return "Strong";
     if (strength >= 60) return "Good";
     if (strength >= 40) return "Fair";
     return "Weak";
   };
-  
-  // Update market sentiment every 2 seconds
+
+  const generateRandomChange = () => {
+    const isPositive = Math.random() > 0.5;
+    const value = (Math.random() * 20).toFixed(1);
+    return {
+      change: `${isPositive ? "+" : "-"}${value}%`,
+      up: isPositive
+    };
+  };
+
+  const generateMarketSentiment = () => {
+    const strength = Math.floor(Math.random() * 51) + 50;
+    let status = "Weak";
+    if (strength >= 75) status = "Strong";
+    else if (strength >= 60) status = "Good";
+    return { strength, status };
+  };
+
+  // Safe TradingView script injector helper
+  function loadTradingViewScript(containerId, scriptConfig) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = ""; // Clear existing content
+
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
+    if (containerId === "tv-market-overview") {
+      script.src = "https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js";
+    }
+    script.async = true;
+    script.innerHTML = JSON.stringify(scriptConfig);
+    container.appendChild(script);
+  }
+
   onMount(() => {
+    // 1. Setup Intervals
     const interval = setInterval(() => {
-      stats = stats.map(stat => ({
-        ...stat,
-        ...generateRandomChange()
-      }));
-    }, 2000); // Update every 2 seconds
-    
-    // Update market sentiment every 1.5 seconds
+      stats = stats.map((stat) => ({ ...stat, ...generateRandomChange() }));
+    }, 2000);
+
     const sentimentInterval = setInterval(() => {
       marketSentiment = generateMarketSentiment();
     }, 1500);
 
-    // Update signal strength status based on user's signal value
     const signalStatusInterval = setInterval(() => {
       signalStrength = {
         ...signalStrength,
         status: getSignalStatus(signalStrength.strength)
       };
     }, 1000);
-    
+
+    // 2. Safely Inject TradingView Widgets
+    loadTradingViewScript("tv-symbol-overview", {
+      symbols: [
+        ["Apple", "NASDAQ:AAPL|1D"],
+        ["Google", "NASDAQ:GOOGL|1D"],
+        ["Microsoft", "NASDAQ:MSFT|1D"]
+      ],
+      chartOnly: false,
+      width: "100%",
+      height: "100%",
+      locale: "en",
+      colorTheme: "dark",
+      autosize: true,
+      showVolume: false,
+      showMA: false,
+      hideDateRanges: false,
+      hideMarketStatus: false,
+      hideSymbolLogo: false,
+      scalePosition: "right",
+      scaleMode: "Normal",
+      fontFamily: "Inter, sans-serif",
+      fontSize: "10",
+      noTimeScale: false,
+      valuesTracking: "1",
+      changeMode: "price-and-percent",
+      chartType: "area",
+      headerFontSize: "medium",
+      lineWidth: 2,
+      lineType: 0,
+      dateRanges: ["1d|1", "1m|30", "3m|60", "12m|1D", "60m|1W", "all|1M"],
+      upColor: "#10b981",
+      downColor: "#ef4444",
+      borderUpColor: "#10b981",
+      borderDownColor: "#ef4444",
+      wickUpColor: "#10b981",
+      wickDownColor: "#ef4444",
+      isTransparent: true
+    });
+
+    loadTradingViewScript("tv-market-overview", {
+      colorTheme: "dark",
+      dateRange: "12M",
+      showFloatingTooltip: false,
+      isTransparent: true,
+      locale: "en",
+      largeChartUrl: "",
+      plotLineColorGrowing: "rgba(59, 130, 246, 1)",
+      plotLineColorFalling: "rgba(59, 130, 246, 1)",
+      gridLineColor: "rgba(240, 243, 250, 0)",
+      scaleFontColor: "rgba(156, 163, 175, 1)",
+      belowLineFillColorGrowing: "rgba(59, 130, 246, 0.12)",
+      belowLineFillColorFalling: "rgba(59, 130, 246, 0.12)",
+      belowLineFillColorGrowingBottom: "rgba(59, 130, 246, 0)",
+      belowLineFillColorFallingBottom: "rgba(59, 130, 246, 0)",
+      symbolActiveColor: "rgba(59, 130, 246, 0.12)",
+      tabs: [
+        {
+          title: "Indices",
+          symbols: [
+            { s: "FOREXCOM:SPXUSD", d: "S&P 500 Index" },
+            { s: "FOREXCOM:NSXUSD", d: "US 100 Cash CFD" },
+            { s: "FOREXCOM:DJI", d: "Dow Jones Industrial Average Index" },
+            { s: "INDEX:NKY", d: "Japan 225" },
+            { s: "INDEX:DEU40", d: "DAX Index" },
+            { s: "FOREXCOM:UKXGBP", d: "FTSE 100 Index" }
+          ]
+        },
+        {
+          title: "Futures",
+          symbols: [
+            { s: "BMFBOVESPA:ISP1!", d: "S&P 500" },
+            { s: "BMFBOVESPA:EUR1!", d: "Euro" },
+            { s: "CMCMARKETS:GOLD", d: "Gold" },
+            { s: "PYTH:WTI3!", d: "WTI Crude Oil" },
+            { s: "BMFBOVESPA:CCM1!", d: "Corn" }
+          ]
+        },
+        {
+          title: "Forex",
+          symbols: [
+            { s: "FX:EURUSD", d: "EUR to USD" },
+            { s: "FX:GBPUSD", d: "GBP to USD" },
+            { s: "FX:USDJPY", d: "USD to JPY" },
+            { s: "FX:USDCHF", d: "USD to CHF" },
+            { s: "FX:AUDUSD", d: "AUD to USD" },
+            { s: "FX:USDCAD", d: "USD to CAD" }
+          ]
+        }
+      ],
+      width: "100%",
+      height: "100%",
+      showSymbolLogo: true,
+      showChart: true
+    });
+
     return () => {
       clearInterval(interval);
       clearInterval(sentimentInterval);
@@ -80,330 +184,157 @@
     };
   });
 
-  const positions = [
-    // ... rest of your positions code
-  ];
-
-  // Calculate color based on strength
-  const getStrengthColor = (strength) => {
-    if (strength >= 75) return 'from-green-500 to-emerald-400';
-    if (strength >= 60) return 'from-yellow-500 to-amber-400';
-    return 'from-orange-500 to-red-400';
+  // Dynamic Color Helper Functions
+  const getGradientClass = (strength) => {
+    if (strength >= 75) return "from-emerald-500 to-green-400";
+    if (strength >= 60) return "from-amber-500 to-yellow-400";
+    return "from-rose-500 to-red-400";
   };
 
-  const getStrengthTextColor = (strength) => {
-    if (strength >= 75) return 'text-green-500';
-    if (strength >= 60) return 'text-yellow-500';
-    return 'text-orange-500';
+  const getTextColorClass = (strength) => {
+    if (strength >= 75) return "text-emerald-400";
+    if (strength >= 60) return "text-amber-400";
+    return "text-rose-400";
   };
 </script>
-<div class="space-y-8">
-  <!-- Market Sentiment Bar -->
-  <div class="w-full">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-sm font-bold uppercase tracking-wider text-[#8e90a0]">Market Sentiment</span>
-      <div class="flex items-center gap-2">
-        <span class="text-lg font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">
-          {marketSentiment.strength}%
-        </span>
-        <span class={`text-xs font-semibold ${getStrengthTextColor(marketSentiment.strength)}`}>
-          {marketSentiment.status}
-        </span>
+
+<div class="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 text-slate-100">
+  <!-- Top Meter Indicators Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Market Sentiment Bar -->
+    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Market Sentiment</span>
+        <div class="flex items-center gap-2">
+          <span class="text-base font-bold text-slate-200 font-mono">{marketSentiment.strength}%</span>
+          <span class={`text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 ${getTextColorClass(marketSentiment.strength)}`}>
+            {marketSentiment.status}
+          </span>
+        </div>
+      </div>
+      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div
+          class={`h-full rounded-full bg-gradient-to-r ${getGradientClass(marketSentiment.strength)} transition-all duration-500 ease-out`}
+          style="width: {marketSentiment.strength}%;"
+        ></div>
       </div>
     </div>
-    <div class="w-full h-2 bg-[#1e293b] rounded-full overflow-hidden border border-[#1e90ff]/10">
-      <div
-        class="h-full rounded-full bg-gradient-to-r {getStrengthColor(marketSentiment.strength)} transition-all duration-500 ease-out shadow-lg"
-        style="width: {marketSentiment.strength}%;"
-      ></div>
-    </div>
-  </div>
 
-  <!-- Signal Strength Bar -->
-  <div class="w-full">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-sm font-bold uppercase tracking-wider text-[#8e90a0]">Signal Strength</span>
-      <div class="flex items-center gap-2">
-        <span class="text-lg font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">
-          {signalStrength.strength}%
-        </span>
-        <span class={`text-xs font-semibold ${getStrengthTextColor(signalStrength.strength)}`}>
-          {signalStrength.status}
-        </span>
+    <!-- Signal Strength Bar -->
+    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Signal Strength</span>
+        <div class="flex items-center gap-2">
+          <span class="text-base font-bold text-slate-200 font-mono">{signalStrength.strength}%</span>
+          <span class={`text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 ${getTextColorClass(signalStrength.strength)}`}>
+            {signalStrength.status}
+          </span>
+        </div>
+      </div>
+      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div
+          class={`h-full rounded-full bg-gradient-to-r ${getGradientClass(signalStrength.strength)} transition-all duration-500 ease-out`}
+          style="width: {signalStrength.strength}%;"
+        ></div>
       </div>
     </div>
-    <div class="w-full h-2 bg-[#1e293b] rounded-full overflow-hidden border border-[#1e90ff]/10">
-      <div
-        class="h-full rounded-full bg-gradient-to-r {getStrengthColor(signalStrength.strength)} transition-all duration-500 ease-out shadow-lg"
-        style="width: {signalStrength.strength}%;"
-      ></div>
+  </div>
+
+  <!-- Dashboard Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/60 pb-6">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-white font-serif">Trading Overview</h1>
+      <p class="text-slate-400 text-sm mt-1">
+        Welcome back, <span class="font-semibold text-slate-200">{data.profile?.first_name || 'User'}</span>. Here's your portfolio activity today.
+      </p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex items-center gap-3">
+      <a 
+        href="/dashboard/deposit" 
+        class="inline-flex items-center justify-center px-5 py-2.5 bg-slate-100 hover:bg-white text-slate-950 font-bold text-sm rounded-lg transition-all shadow-sm active:scale-95"
+      >
+        Deposit
+      </a>
+      <a 
+        href="/dashboard/trades" 
+        class="inline-flex items-center justify-center px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm rounded-lg transition-all shadow-sm shadow-rose-950/30 active:scale-95"
+      >
+        Trade
+      </a>
     </div>
   </div>
 
-  <!-- Header -->
-  <div class="flex flex-col gap-2">
-    <h1 class="text-3xl font-bold tracking-tight text-[#dfe2f3]" style="font-family:'Playfair Display',serif;">Trading Overview</h1>
-    <p class="text-[#8e90a0] font-light capitalize">Welcome back, {data.profile?.first_name || 'User'} Here's what's happening in your portfolio today.</p>
-  </div>
-
-  <!-- Stats Grid -->
-  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+  <!-- Key Performance Metrics Grid -->
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {#each stats as stat}
-      <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm">
+      <Card class="bg-slate-900/60 border-slate-800/80 backdrop-blur-md shadow-sm hover:border-slate-700/80 transition-colors">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-[10px] font-bold uppercase tracking-wider text-[#8e90a0]">{stat.label}</CardTitle>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="h-4 w-4 text-[#444654]">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-          </svg>
+          <CardTitle class="text-xs font-bold uppercase tracking-wider text-slate-400">{stat.label}</CardTitle>
+          <div class="p-2 bg-slate-800/50 rounded-lg text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">{data.profile.currency} {stat.value}</div>
-          <p class="text-xs mt-1 font-medium {stat.up ? 'text-green-500' : 'text-red-500'}">
-            {stat.change} <span class="text-[#444654] font-normal">from last session</span>
+          <div class="text-2xl font-bold text-slate-100 font-mono tracking-tight">
+            {data.profile?.currency || '$'} {stat.value}
+          </div>
+          <p class="text-xs mt-2 font-medium flex items-center gap-1.5">
+            <span class={stat.up ? 'text-emerald-400' : 'text-rose-400'}>
+              {stat.change}
+            </span> 
+            <span class="text-slate-500">from last session</span>
           </p>
         </CardContent>
       </Card>
     {/each}
   </div>
-  <div class="flex gap-x-2.5">
-    <a href="/dashboard/deposit" class='text-center flex-5 p-2 bg-gray-100 text-black text-lg [border-radius:8px] font-bold hover:bg-gray-200'>
-      Deposit
-    </a>
-     <a href="/dashboard/trades" class='text-center flex-5 p-2 bg-red-600 text-white text-lg [border-radius:8px] font-bold hover:bg-red-700'>
-      Trade
-    </a>
-  </div>
 
+  <!-- Main Trading Section Grid -->
   <div class="grid gap-8 lg:grid-cols-3">
-    <!-- Chart Section -->
-    <div class="lg:col-span-2 space-y-4">
-      <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm h-[450px] relative overflow-hidden">
-       <!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container w-full h-full">
-  <div class="tradingview-widget-container__widget h-full"></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-  {
-  "symbols": [
-    [
-      "Apple",
-      "NASDAQ:AAPL|1D"
-    ],
-    [
-      "Google",
-      "NASDAQ:GOOGL|1D"
-    ],
-    [
-      "Microsoft",
-      "NASDAQ:MSFT|1D"
-    ]
-  ],
-  "chartOnly": false,
-  "width": "100%",
-  "height": "100%",
-  "locale": "en",
-  "colorTheme": "dark",
-  "autosize": true,
-  "showVolume": false,
-  "showMA": false,
-  "hideDateRanges": false,
-  "hideMarketStatus": false,
-  "hideSymbolLogo": false,
-  "scalePosition": "right",
-  "scaleMode": "Normal",
-  "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
-  "fontSize": "10",
-  "noTimeScale": false,
-  "valuesTracking": "1",
-  "changeMode": "price-and-percent",
-  "chartType": "area",
-  "headerFontSize": "medium",
-  "lineWidth": 2,
-  "lineType": 0,
-  "dateRanges": [
-    "1d|1",
-    "1m|30",
-    "3m|60",
-    "12m|1D",
-    "60m|1W",
-    "all|1M"
-  ],
-  "upColor": "#22ab94",
-  "downColor": "#f7525f",
-  "borderUpColor": "#22ab94",
-  "borderDownColor": "#f7525f",
-  "wickUpColor": "#22ab94",
-  "wickDownColor": "#f7525f",
-  "isTransparent": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
-        
+    <!-- Charts Container -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Symbol Overview Card -->
+      <Card class="bg-slate-900/60 border-slate-800/80 backdrop-blur-md overflow-hidden min-h-[480px]">
+        <div id="tv-symbol-overview" class="w-full h-[480px]"></div>
       </Card>
 
-      <!-- Active Positions -->
-      <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm overflow-hidden h-[600px] flex flex-col">
-        <CardHeader>
-          <CardTitle class="text-sm font-bold uppercase tracking-wider text-[#8e90a0]">Active Positions</CardTitle>
+      <!-- Active Positions & Market Overview -->
+      <Card class="bg-slate-900/60 border-slate-800/80 backdrop-blur-md overflow-hidden flex flex-col min-h-[550px]">
+        <CardHeader class="border-b border-slate-800/60 py-4">
+          <CardTitle class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Positions & Market Overview</CardTitle>
         </CardHeader>
-       <!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container w-full flex-1">
-  <div class="tradingview-widget-container__widget h-full"></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
-  {
-  "colorTheme": "dark",
-  "dateRange": "12M",
-  "showFloatingTooltip": false,
-  "isTransparent": true,
-  "locale": "en",
-  "largeChartUrl": "",
-  "plotLineColorGrowing": "rgba(41, 98, 255, 1)",
-  "plotLineColorFalling": "rgba(41, 98, 255, 1)",
-  "gridLineColor": "rgba(240, 243, 250, 0)",
-  "scaleFontColor": "rgba(209, 212, 220, 1)",
-  "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)",
-  "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)",
-  "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)",
-  "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0)",
-  "symbolActiveColor": "rgba(41, 98, 255, 0.12)",
-  "tabs": [
-    {
-      "title": "Indices",
-      "symbols": [
-        {
-          "s": "FOREXCOM:SPXUSD",
-          "d": "S&P 500 Index"
-        },
-        {
-          "s": "FOREXCOM:NSXUSD",
-          "d": "US 100 Cash CFD"
-        },
-        {
-          "s": "FOREXCOM:DJI",
-          "d": "Dow Jones Industrial Average Index"
-        },
-        {
-          "s": "INDEX:NKY",
-          "d": "Japan 225"
-        },
-        {
-          "s": "INDEX:DEU40",
-          "d": "DAX Index"
-        },
-        {
-          "s": "FOREXCOM:UKXGBP",
-          "d": "FTSE 100 Index"
-        }
-      ],
-      "originalTitle": "Indices"
-    },
-    {
-      "title": "Futures",
-      "symbols": [
-        {
-          "s": "BMFBOVESPA:ISP1!",
-          "d": "S&P 500"
-        },
-        {
-          "s": "BMFBOVESPA:EUR1!",
-          "d": "Euro"
-        },
-        {
-          "s": "CMCMARKETS:GOLD",
-          "d": "Gold"
-        },
-        {
-          "s": "PYTH:WTI3!",
-          "d": "WTI Crude Oil"
-        },
-        {
-          "s": "BMFBOVESPA:CCM1!",
-          "d": "Corn"
-        }
-      ],
-      "originalTitle": "Futures"
-    },
-    {
-      "title": "Bonds",
-      "symbols": [
-        {
-          "s": "EUREX:FGBL1!",
-          "d": "Euro Bund"
-        },
-        {
-          "s": "EUREX:FBTP1!",
-          "d": "Euro BTP"
-        },
-        {
-          "s": "EUREX:FGBM1!",
-          "d": "Euro BOBL"
-        }
-      ],
-      "originalTitle": "Bonds"
-    },
-    {
-      "title": "Forex",
-      "symbols": [
-        {
-          "s": "FX:EURUSD",
-          "d": "EUR to USD"
-        },
-        {
-          "s": "FX:GBPUSD",
-          "d": "GBP to USD"
-        },
-        {
-          "s": "FX:USDJPY",
-          "d": "USD to JPY"
-        },
-        {
-          "s": "FX:USDCHF",
-          "d": "USD to CHF"
-        },
-        {
-          "s": "FX:AUDUSD",
-          "d": "AUD to USD"
-        },
-        {
-          "s": "FX:USDCAD",
-          "d": "USD to CAD"
-        }
-      ],
-      "originalTitle": "Forex"
-    }
-  ],
-  "support_host": "https://www.tradingview.com",
-  "width": "100%",
-  "height": "100%",
-  "showSymbolLogo": true,
-  "showChart": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->    </Card>
+        <CardContent class="p-0 flex-1">
+          <div id="tv-market-overview" class="w-full h-[500px]"></div>
+        </CardContent>
+      </Card>
     </div>
 
-    <!-- Quick Trade Section -->
+    <!-- Right Sidebar / Watchlist -->
     <div class="space-y-6">
-     
-      <!-- Market Ticker Card -->
-      <Card class="bg-[#111827]/50 border-[#1e90ff]/10 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle class="text-sm font-bold uppercase tracking-wider text-[#8e90a0]">Market Watch</CardTitle>
+      <Card class="bg-slate-900/60 border-slate-800/80 backdrop-blur-md">
+        <CardHeader class="border-b border-slate-800/60 py-4">
+          <CardTitle class="text-xs font-bold uppercase tracking-wider text-slate-400">Market Watch</CardTitle>
         </CardHeader>
         <CardContent class="p-0">
-          <div class="divide-y divide-[#444654]/20">
+          <div class="divide-y divide-slate-800/60">
             {#each [
               { asset: "EUR/USD", price: "1.08420", change: "+0.04%" },
               { asset: "GBP/USD", price: "1.27540", change: "-0.12%" },
               { asset: "USD/JPY", price: "154.32", change: "+0.45%" },
               { asset: "XAU/USD", price: "2,312.40", change: "-0.22%" },
             ] as ticker}
-              <div class="flex items-center justify-between px-6 py-3 hover:bg-white/5 cursor-pointer transition-colors">
-                <span class="text-sm font-bold text-[#dfe2f3]" style="font-family:'JetBrains Mono',monospace;">{ticker.asset}</span>
+              <div class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/30 transition-colors cursor-pointer">
+                <span class="text-sm font-bold text-slate-200 font-mono">{ticker.asset}</span>
                 <div class="text-right">
-                  <p class="text-sm font-bold text-[#dfe2f3] font-mono">{ticker.price}</p>
-                  <p class="text-[10px] {ticker.change.startsWith('+') ? 'text-green-500' : 'text-red-500'} font-bold">{ticker.change}</p>
+                  <p class="text-sm font-bold text-slate-100 font-mono">{ticker.price}</p>
+                  <p class={`text-[11px] font-semibold ${ticker.change.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {ticker.change}
+                  </p>
                 </div>
               </div>
             {/each}
@@ -413,14 +344,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  :global(body) {
-    --sentiment-strong: rgb(34, 197, 94);
-    --sentiment-good: rgb(234, 179, 8);
-    --sentiment-weak: rgb(249, 115, 22);
-    --signal-strong: rgb(34, 197, 94);
-    --signal-good: rgb(234, 179, 8);
-    --signal-weak: rgb(249, 115, 22);
-  }
-</style>
