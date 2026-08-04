@@ -14,8 +14,8 @@ export const load = async ({ locals: { supabase, getSession } }) => {
   const [
     { data: profile, error: profileError },
     { data: experts, error: projectsError },
-    { data: account_plan, error: accountPlanError },
-    { data: subscription, error: settingsError }
+    { data: subscription, error: settingsError },
+	{ data: account_plan, error: accountPlanError },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -29,13 +29,12 @@ export const load = async ({ locals: { supabase, getSession } }) => {
      , // or whatever your foreign key is
 
     supabase
-      .from('account_plan')
-      .select('*')
-      ,
-    supabase
       .from('subscription')
       .select('*')
-      
+      ,
+	  supabase
+	  .from('account_plan')
+	  .select(*)
   ]);
 
   // Log errors but don't fail the whole load if one table errors
