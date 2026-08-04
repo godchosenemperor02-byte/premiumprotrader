@@ -34,6 +34,7 @@
   // Status, Error & Feedback Management
   let isLoading = $state(false);
   let isVerifyingDeposit = $state(false);
+  let isVerifyingWithdrawal = $state(false);
   let errorMessage = $state('');
   let successMessage = $state('');
 
@@ -108,9 +109,10 @@
     successMessage = '';
     isLoading = false;
     isVerifyingDeposit = false;
+    isVerifyingWithdrawal = false;
   }
 
-  // --- SUPABASE VERIFY LAST DEPOSIT LOGIC (UPDATED) ---
+  // --- SUPABASE VERIFY LAST DEPOSIT LOGIC ---
   async function handleVerifyLastDeposit() {
     if (!editForm.id || !supabase) return;
 
@@ -118,7 +120,7 @@
     errorMessage = '';
     successMessage = '';
 
-    // 1. Fetch the latest deposit transaction for this user (including amount)
+    // 1. Fetch the latest deposit transaction for this user
     const { data: transactions, error: fetchError } = await supabase
       .from('transactions')
       .select('id, status, amount')
@@ -149,7 +151,7 @@
 
     const depositAmount = Number(lastDeposit.amount) || 0;
 
-    // 2. Update the transaction status to 'completed'
+    // 2. Update transaction status
     const { error: updateTxError } = await supabase
       .from('transactions')
       .update({ status: 'completed' })
@@ -161,7 +163,7 @@
       return;
     }
 
-    // 3. Update the user's profile capital by adding the deposit amount
+    // 3. Update capital
     const currentCapital = Number(editForm.capital) || 0;
     const newCapital = currentCapital + depositAmount;
 
@@ -177,9 +179,80 @@
       return;
     }
 
-    // Update local form state dynamically
     editForm.capital = newCapital;
     successMessage = `Deposit verified! Added ${depositAmount} to capital (New Capital: ${newCapital}).`;
+    await invalidateAll();
+  }
+
+  // --- SUPABASE VERIFY LAST WITHDRAWAL LOGIC ---
+  async function handleVerifyLastWithdrawal() {
+    if (!editForm.id || !supabase) return;
+
+    isVerifyingWithdrawal = true;
+    errorMessage = '';
+    successMessage = '';
+
+    // 1. Fetch the latest withdrawal transaction for this user
+    const { data: transactions, error: fetchError } = await supabase
+      .from('transactions')
+      .select('id, status, amount')
+      .eq('user_id', editForm.id)
+      .eq('type', 'withdrawal')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (fetchError) {
+      errorMessage = `Failed to fetch last withdrawal: ${fetchError.message}`;
+      isVerifyingWithdrawal = false;
+      return;
+    }
+
+    if (!transactions || transactions.length === 0) {
+      errorMessage = 'No withdrawal transaction found for this user.';
+      isVerifyingWithdrawal = false;
+      return;
+    }
+
+    const lastWithdrawal = transactions[0];
+
+    if (lastWithdrawal.status === 'completed') {
+      successMessage = 'The latest withdrawal is already marked as completed.';
+      isVerifyingWithdrawal = false;
+      return;
+    }
+
+    const withdrawalAmount = Number(lastWithdrawal.amount) || 0;
+
+    // 2. Update transaction status
+    const { error: updateTxError } = await supabase
+      .from('transactions')
+      .update({ status: 'completed' })
+      .eq('id', lastWithdrawal.id);
+
+    if (updateTxError) {
+      errorMessage = `Failed to verify withdrawal status: ${updateTxError.message}`;
+      isVerifyingWithdrawal = false;
+      return;
+    }
+
+    // 3. Update capital (deduct withdrawal)
+    const currentCapital = Number(editForm.capital) || 0;
+    const newCapital = Math.max(0, currentCapital - withdrawalAmount);
+
+    const { error: updateProfileError } = await supabase
+      .from('profiles')
+      .update({ capital: newCapital })
+      .eq('id', editForm.id);
+
+    isVerifyingWithdrawal = false;
+
+    if (updateProfileError) {
+      errorMessage = `Withdrawal verified, but failed to update profile capital: ${updateProfileError.message}`;
+      return;
+    }
+
+    editForm.capital = newCapital;
+    successMessage = `Withdrawal verified! Deducted ${withdrawalAmount} from capital (New Capital: ${newCapital}).`;
     await invalidateAll();
   }
 
@@ -273,19 +346,19 @@
   }
 </script>
 
-<div class="min-h-screen bg-[#111827] text-slate-100 font-sans antialiased p-4 sm:p-6 lg:p-8">
-  <div class="max-w-7xl mx-auto space-y-8">
+<div class="min-h-screen bg-[#111827] text-slate-100 font-sans antialiased p-3 sm:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8">
     <!-- Page Header Title Block -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
       <div class="space-y-1">
-        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Dashboard Overview</h2>
-        <p class="text-sm text-slate-400">System-wide operational metrics, user balances, and administrative controls.</p>
+        <h2 class="text-xl sm:text-3xl font-bold tracking-tight text-white">Dashboard Overview</h2>
+        <p class="text-xs sm:text-sm text-slate-400">System-wide operational metrics, user balances, and administrative controls.</p>
       </div>
       <!-- Quick System Actions -->
       <div class="flex items-center gap-3">
         <button 
           onclick={openAddModal}
-          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 rounded-xl text-sm font-medium text-white shadow-lg shadow-blue-600/20 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 rounded-xl text-sm font-medium text-white shadow-lg shadow-blue-600/20 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/40"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -296,44 +369,44 @@
     </div>
 
     <!-- Key Performance Metrics Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
       <!-- Card 1: Subscription Plans -->
-      <div class="relative overflow-hidden bg-slate-900/70 border border-slate-800/80 p-5 rounded-2xl shadow-sm hover:border-slate-700/80 transition-all group backdrop-blur-md">
-        <div class="flex items-center justify-between mb-4">
+      <div class="relative overflow-hidden bg-slate-900/70 border border-slate-800/80 p-4 sm:p-5 rounded-2xl shadow-sm hover:border-slate-700/80 transition-all group backdrop-blur-md">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
           <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Subscription Plans</span>
-          <div class="p-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl group-hover:scale-105 transition-transform">
+          <div class="p-2 sm:p-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl group-hover:scale-105 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 18v-6m0 0h18" />
             </svg>
           </div>
         </div>
-        <div class="text-3xl font-mono font-bold text-white tracking-tight">{subscriptionCount}</div>
+        <div class="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight">{subscriptionCount}</div>
       </div>
 
       <!-- Card 2: Experts -->
-      <div class="relative overflow-hidden bg-slate-900/70 border border-slate-800/80 p-5 rounded-2xl shadow-sm hover:border-slate-700/80 transition-all group backdrop-blur-md">
-        <div class="flex items-center justify-between mb-4">
+      <div class="relative overflow-hidden bg-slate-900/70 border border-slate-800/80 p-4 sm:p-5 rounded-2xl shadow-sm hover:border-slate-700/80 transition-all group backdrop-blur-md">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
           <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Experts</span>
-          <div class="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
+          <div class="p-2 sm:p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl group-hover:scale-105 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.7-3.024A9.334 9.334 0 0 0 12 3c-4.478 0-8.268 2.943-9.543 7a9.306 9.306 0 0 0 1.563 5.803c.456.913.994 1.76 1.564 2.555m0 0A9.382 9.382 0 0 0 15 19.128" />
             </svg>
           </div>
         </div>
-        <div class="text-3xl font-mono font-bold text-white tracking-tight">{expertsCount}</div>
+        <div class="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight">{expertsCount}</div>
       </div>
 
       <!-- Card 3: Registered Users Count -->
-      <div class="relative overflow-hidden bg-slate-900/70 border border-slate-800/80 p-5 rounded-2xl shadow-sm hover:border-slate-700/80 transition-all group sm:col-span-2 lg:col-span-1 backdrop-blur-md">
-        <div class="flex items-center justify-between mb-4">
+      <div class="relative overflow-hidden bg-slate-900/70 border border-slate-800/80 p-4 sm:p-5 rounded-2xl shadow-sm hover:border-slate-700/80 transition-all group sm:col-span-2 lg:col-span-1 backdrop-blur-md">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
           <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Registered Users</span>
-          <div class="p-2.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl group-hover:scale-105 transition-transform">
+          <div class="p-2 sm:p-2.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl group-hover:scale-105 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a5.97 5.97 0 00-.942 3.197M12 10.5a3.375 3.375 0 100-6.75 3.375 3.375 0 000 6.75z" />
             </svg>
           </div>
         </div>
-        <div class="text-3xl font-mono font-bold text-white tracking-tight">{profileList.length}</div>
+        <div class="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight">{profileList.length}</div>
       </div>
     </div>
 
@@ -341,13 +414,58 @@
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-lg font-bold text-white">Registered Accounts</h3>
+          <h3 class="text-base sm:text-lg font-bold text-white">Registered Accounts</h3>
           <p class="text-xs text-slate-400 mt-0.5">Manage user profiles, financial allocation, and sub-tier permissions.</p>
         </div>
       </div>
 
-      <!-- User Table -->
-      <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl backdrop-blur-md">
+      <!-- Mobile User Cards View (Visible on Small Screens) -->
+      <div class="block md:hidden space-y-3">
+        {#if profileList.length > 0}
+          {#each profileList as user}
+            <div class="p-4 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3 backdrop-blur-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-200 shrink-0">
+                    {user.first_name?.[0]?.toUpperCase() ?? 'U'}
+                  </div>
+                  <div class="min-w-0">
+                    <span class="block text-sm font-semibold text-slate-100 truncate">{user.first_name ?? 'Unregistered'} {user.last_name ?? ''}</span>
+                    <span class="block text-xs text-slate-400 truncate">{user.email ?? 'No email bound'}</span>
+                  </div>
+                </div>
+                <span class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                  {user.currency ?? '$'} {user.balance ?? '0.00'}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-800/60">
+                <span class="font-mono text-slate-500 truncate max-w-[140px]">ID: {user.id}</span>
+                <div class="flex gap-2">
+                  <button 
+                    onclick={() => openEditModal(user)}
+                    class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 text-xs font-medium"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onclick={() => openDeleteModal(user)}
+                    class="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-medium"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          {/each}
+        {:else}
+          <div class="p-6 text-center text-slate-500 text-xs bg-slate-900/40 rounded-2xl border border-slate-800">
+            No users found in database.
+          </div>
+        {/if}
+      </div>
+
+      <!-- Desktop User Table View (Hidden on Small Screens) -->
+      <div class="hidden md:block overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl backdrop-blur-md">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-sm">
             <thead>
@@ -378,7 +496,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                        {user.currency} {user.balance ?? '0.00'}
+                        {user.currency ?? '$'} {user.balance ?? '0.00'}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
@@ -414,10 +532,10 @@
 
 <!-- ADD USER MODAL -->
 {#if isAddOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-        <h3 class="text-lg font-bold text-white">Add New User</h3>
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
+        <h3 class="text-base sm:text-lg font-bold text-white">Add New User</h3>
         <button onclick={closeModals} class="text-slate-400 hover:text-white text-sm p-1 rounded-md hover:bg-slate-800 transition-colors">✕</button>
       </div>
 
@@ -427,8 +545,8 @@
         </div>
       {/if}
 
-      <div class="space-y-4">
-        <div class="grid grid-cols-2 gap-3">
+      <div class="space-y-3 sm:space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1.5" for="add-first-name">First Name *</label>
             <input 
@@ -477,7 +595,7 @@
           />
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1.5" for="add-country">Country</label>
             <input 
@@ -503,7 +621,7 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+      <div class="flex items-center justify-end gap-3 pt-3 sm:pt-4 border-t border-slate-800">
         <button 
           onclick={closeModals} 
           disabled={isLoading}
@@ -529,10 +647,10 @@
 
 <!-- EDIT USER MODAL -->
 {#if isEditOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-        <h3 class="text-lg font-bold text-white">Edit User Profile</h3>
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
+        <h3 class="text-base sm:text-lg font-bold text-white">Edit User Profile</h3>
         <button onclick={closeModals} class="text-slate-400 hover:text-white text-sm p-1 rounded-md hover:bg-slate-800 transition-colors">✕</button>
       </div>
 
@@ -548,42 +666,67 @@
         </div>
       {/if}
 
-      <!-- Verify Last Deposit Action Section -->
-      <div class="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between gap-3">
+      <!-- Verify Action Panel (Deposits & Withdrawals) -->
+      <div class="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3">
         <div>
-          <span class="block text-xs font-semibold text-slate-200">Deposit Action</span>
-          <span class="block text-[11px] text-slate-400">Mark last deposit as complete & credit capital</span>
+          <span class="block text-xs font-semibold text-slate-200">Transaction Verification</span>
+          <span class="block text-[11px] text-slate-400">Complete pending transactions & auto-update capital balance</span>
         </div>
-        <button
-          type="button"
-          onclick={handleVerifyLastDeposit}
-          disabled={isVerifyingDeposit || isLoading}
-          class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5 shrink-0"
-        >
-          {#if isVerifyingDeposit}
-            <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>Verifying...</span>
-          {:else}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Verify Last Deposit</span>
-          {/if}
-        </button>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <!-- Verify Deposit Button -->
+          <button
+            type="button"
+            onclick={handleVerifyLastDeposit}
+            disabled={isVerifyingDeposit || isVerifyingWithdrawal || isLoading}
+            class="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            {#if isVerifyingDeposit}
+              <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Verifying Deposit...</span>
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m0-15l-3.75 3.75M12 4.5l3.75 3.75" />
+              </svg>
+              <span>Verify Last Deposit</span>
+            {/if}
+          </button>
+
+          <!-- Verify Withdrawal Button -->
+          <button
+            type="button"
+            onclick={handleVerifyLastWithdrawal}
+            disabled={isVerifyingDeposit || isVerifyingWithdrawal || isLoading}
+            class="w-full px-3 py-2 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-xs font-medium rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            {#if isVerifyingWithdrawal}
+              <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Verifying Withdrawal...</span>
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19.5v-15m0 15l-3.75-3.75M12 19.5l3.75-3.75" />
+              </svg>
+              <span>Verify Last Withdrawal</span>
+            {/if}
+          </button>
+        </div>
       </div>
 
-      <div class="space-y-4">
-        <div class="grid grid-cols-2 gap-3">
+      <div class="space-y-3 sm:space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1.5" for="profit">Profit</label>
             <input 
               id="profit"
               type="number" 
               bind:value={editForm.profit} 
-              disabled={isLoading || isVerifyingDeposit}
+              disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
               class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
             />
           </div>
@@ -593,7 +736,7 @@
               id="capital"
               type="number" 
               bind:value={editForm.capital} 
-              disabled={isLoading || isVerifyingDeposit}
+              disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
               class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
             />
           </div>
@@ -605,7 +748,7 @@
             id="signal"
             type="number" 
             bind:value={editForm.signal} 
-            disabled={isLoading || isVerifyingDeposit}
+            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
             class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           />
         </div>
@@ -615,7 +758,7 @@
           <select 
             id="account_signal"
             bind:value={editForm.account_signal} 
-            disabled={isLoading || isVerifyingDeposit}
+            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
             class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           >
             {#if Array.isArray(data?.subscription) && data.subscription.length > 0}
@@ -635,7 +778,7 @@
           <select 
             id="copied_expert"
             bind:value={editForm.copy_expert} 
-            disabled={isLoading || isVerifyingDeposit}
+            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
             class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
           >
             {#if Array.isArray(data?.experts)}
@@ -649,17 +792,17 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+      <div class="flex items-center justify-end gap-3 pt-3 sm:pt-4 border-t border-slate-800">
         <button 
           onclick={closeModals} 
-          disabled={isLoading || isVerifyingDeposit}
+          disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
           class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition-all disabled:opacity-50"
         >
           Cancel
         </button>
         <button 
           onclick={handleSaveUser} 
-          disabled={isLoading || isVerifyingDeposit}
+          disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
           class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-xl transition-all shadow-md shadow-blue-500/10 disabled:opacity-50 flex items-center gap-2"
         >
           {#if isLoading}
@@ -675,15 +818,15 @@
 
 <!-- DELETE CONFIRMATION MODAL -->
 {#if isDeleteOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl">
       <div class="flex items-center gap-3 text-rose-400">
-        <div class="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+        <div class="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0l-10.998 19.24c-.865 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378" />
           </svg>
         </div>
-        <h3 class="text-lg font-bold text-white">Delete Account</h3>
+        <h3 class="text-base sm:text-lg font-bold text-white">Delete Account</h3>
       </div>
 
       {#if errorMessage}
