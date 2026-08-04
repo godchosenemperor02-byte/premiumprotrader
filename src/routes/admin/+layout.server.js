@@ -45,7 +45,7 @@ export const load = async ({ locals: { supabase, getSession } }) => {
       .select('*')
     ,
     supabase
-      .from('transanctions')
+      .from('transactions')
       .select('*')
       .eq('type','withdraw')
     ,
