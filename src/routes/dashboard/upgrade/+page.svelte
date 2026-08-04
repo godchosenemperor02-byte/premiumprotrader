@@ -114,7 +114,7 @@
 
   <!-- Pricing Cards Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {#each account_types as plan}
+    {#each data.account_plan as plan}
       {@const isCurrentPlan = plan.title.toLowerCase() === data.profile?.accountplan?.trim().toLowerCase()}
       {@const isLoading = subscribeLoading === plan.title}
 
