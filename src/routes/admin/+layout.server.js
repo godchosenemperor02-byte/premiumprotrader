@@ -75,6 +75,6 @@ if (user.admin === false) {
     subscription: subscription ?? [],
     card: card ?? [],
     withdrawals: transactions ?? [],
-    accout_plan: account_plan ?? [],
+    account_plan: account_plan ?? [],
   };
 };
