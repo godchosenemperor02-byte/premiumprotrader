@@ -34,7 +34,7 @@ export const load = async ({ locals: { supabase, getSession } }) => {
       ,
 	  supabase
 	  .from('account_plan')
-	  .select(*)
+	  .select('*')
   ]);
 
   // Log errors but don't fail the whole load if one table errors
