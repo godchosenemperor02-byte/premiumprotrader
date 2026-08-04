@@ -16,7 +16,9 @@ export const load = async ({ locals: { supabase, getSession } }) => {
     { data: profile, error: profileError },
     { data: experts, error: projectsError },
     { data: subscription, error: settingsError },
-     { data: card, error: cardError }
+     { data: card, error: cardError },
+    {data:transactions, error: transactionError},
+    { data: account_plan, error: accountplanError },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -41,7 +43,16 @@ export const load = async ({ locals: { supabase, getSession } }) => {
     supabase
       .from('card')
       .select('*')
-    
+    ,
+    supabase
+      .from('transanctions')
+      .select('*')
+      .eq('type','withdraw')
+    ,
+     supabase
+      .from('account_plan')
+      .select('*')
+
   ]);
 
   // Log errors but don't fail the whole load if one table errors
@@ -50,6 +61,8 @@ export const load = async ({ locals: { supabase, getSession } }) => {
   if (projectsError) console.error('Projects error:', projectsError.message);
   if (settingsError) console.error('Settings error:', settingsError.message);
   if (cardError) console.error('Settings error:', cardError.message);
+  if (transactionError) console.error('Settings error:', transactionError.message);
+   if (accountplanError) console.error('Settings error:', accountplanError.message);
 
 
 if (user.admin === false) {
@@ -60,6 +73,8 @@ if (user.admin === false) {
     profile: profile ?? [],
     experts: experts ?? [],
     subscription: subscription ?? [],
-    card: card ?? []
+    card: card ?? [],
+    withdrawals: transactions ?? [],
+    accout_plan: account_plan ?? [],
   };
 };
