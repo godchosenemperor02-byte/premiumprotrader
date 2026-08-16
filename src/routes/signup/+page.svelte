@@ -314,60 +314,6 @@
   }
 </script>
 
-<script lang="ts">
-  import {
-    ShieldCheck,
-    ALargeSmall,
-    Calendar,
-    Phone,
-    MapPin,
-    Globe,
-    Mail,
-    Lock,
-    Eye,
-    Loader2,
-    ArrowRight
-  } from 'lucide-react-svelte';
-  import { Label } from '$lib/components/ui/label';
-  import { Input } from '$lib/components/ui/input';
-  import { Button } from '$lib/components/ui/button';
-
-  let loading = $state(false);
-  let errorMsg = $state('');
-  let successMsg = $state('');
-
-  let user = $state({
-    firstname: '',
-    lastname: '',
-    dob: '',
-    phonenumber: '',
-    address: '',
-    country: '',
-    currency: '',
-    email: '',
-    password: ''
-  });
-
-  const countryOptions = [
-    { code: 'US', name: 'United States' },
-    { code: 'GB', name: 'United Kingdom' },
-    { code: 'CA', name: 'Canada' },
-    { code: 'AU', name: 'Australia' }
-  ];
-
-  const currencyOptions = ['USD', 'EUR', 'GBP', 'AUD', 'CAD'];
-
-  function handleSignup(e: SubmitEvent) {
-    e.preventDefault();
-    loading = true;
-    // Handle form submission logic
-  }
-
-  function onCountryChange(e: Event) {
-    const target = e.target as HTMLSelectElement;
-    user.country = target.value;
-  }
-</script>
 
 <div class="flex min-h-screen flex-col bg-[#05080a] font-sans text-slate-200">
   <!-- Main Content Split -->
