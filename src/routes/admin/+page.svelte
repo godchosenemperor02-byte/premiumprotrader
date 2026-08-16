@@ -419,50 +419,98 @@
         </div>
       </div>
 
-     <!-- Mobile User Cards View -->
-<!-- ... inside the actions div of each mobile card ... -->
-<div class="flex gap-2">
-  <button 
-    onclick={() => openDetailsModal(user)}
-    class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg border border-slate-700 text-xs font-medium"
-  >
-    View
-  </button>
-  <button 
-    onclick={() => openEditModal(user)}
-    class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 text-xs font-medium"
-  >
-    Edit
-  </button>
-  <button 
-    onclick={() => openDeleteModal(user)}
-    class="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-medium"
-  >
-    Delete
-  </button>
+      <!-- Mobile User Cards View -->
+      <div class="block md:hidden space-y-3">
+        {#each profileList as user}
+          <div class="bg-slate-900/70 border border-slate-800 p-4 rounded-xl space-y-3 backdrop-blur-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="font-bold text-white text-sm">{user.first_name ?? 'Unregistered'} {user.last_name ?? ''}</span>
+                <span class="block text-xs text-slate-400">{user.email ?? 'No email'}</span>
+              </div>
+              <span class="text-xs font-mono font-semibold text-emerald-400">{user.currency ?? '$'}{user.balance ?? '0.00'}</span>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button 
+                onclick={() => openDetailsModal(user)}
+                class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg border border-slate-700 text-xs font-medium"
+              >
+                View
+              </button>
+              <button 
+                onclick={() => openEditModal(user)}
+                class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 text-xs font-medium"
+              >
+                Edit
+              </button>
+              <button 
+                onclick={() => openDeleteModal(user)}
+                class="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-medium"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      <!-- Desktop User Table View -->
+      <div class="hidden md:block overflow-x-auto bg-slate-900/70 border border-slate-800 rounded-2xl backdrop-blur-md">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
+              <th class="px-6 py-3.5">User</th>
+              <th class="px-6 py-3.5">Balance</th>
+              <th class="px-6 py-3.5">Signal Plan</th>
+              <th class="px-6 py-3.5">Copied Expert</th>
+              <th class="px-6 py-3.5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-medium">
+            {#each profileList as user}
+              <tr class="hover:bg-slate-800/30 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="font-bold text-white">{user.first_name ?? 'Unregistered'} {user.last_name ?? ''}</div>
+                  <div class="text-slate-400">{user.email ?? 'No email'}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap font-mono text-emerald-400">
+                  {user.currency ?? '$'}{user.balance ?? '0.00'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-slate-300">
+                  {user.account_signal ?? 'None'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-slate-300">
+                  {user.copy_expert ?? 'None'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                  <button 
+                    onclick={() => openDetailsModal(user)}
+                    class="text-xs font-medium px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg border border-slate-700 transition-all focus:ring-2 focus:ring-slate-600/40"
+                  >
+                    View
+                  </button>
+                  <button 
+                    onclick={() => openEditModal(user)}
+                    class="text-xs font-medium px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition-all focus:ring-2 focus:ring-slate-600/40"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onclick={() => openDeleteModal(user)}
+                    class="text-xs font-medium px-3.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all focus:ring-2 focus:ring-rose-500/40"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Desktop User Table View -->
-<!-- ... inside <td class="px-6 py-4 whitespace-nowrap text-right space-x-2"> ... -->
-<button 
-  onclick={() => openDetailsModal(user)}
-  class="text-xs font-medium px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg border border-slate-700 transition-all focus:ring-2 focus:ring-slate-600/40"
->
-  View
-</button>
-<button 
-  onclick={() => openEditModal(user)}
-  class="text-xs font-medium px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition-all focus:ring-2 focus:ring-slate-600/40"
->
-  Edit
-</button>
-<button 
-  onclick={() => openDeleteModal(user)}
-  class="text-xs font-medium px-3.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all focus:ring-2 focus:ring-rose-500/40"
->
-  Delete
-</button>
-</div>
 <!-- ADD USER MODAL -->
 {#if isAddOpen}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
@@ -795,6 +843,7 @@
     </div>
   </div>
 {/if}
+
 <!-- USER DETAILS MODAL -->
 {#if isDetailsOpen}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
@@ -855,11 +904,11 @@
           <span class="text-slate-200">{selectedUser?.country ?? 'N/A'}</span>
         </div>
         <div class="flex justify-between py-2">
-          <span class="text-slate-400">Country</span>
+          <span class="text-slate-400">Date of Birth</span>
           <span class="text-slate-200">{selectedUser?.dob ?? 'N/A'}</span>
         </div>
         <div class="flex justify-between py-2">
-          <span class="text-slate-400">Country</span>
+          <span class="text-slate-400">Address</span>
           <span class="text-slate-200">{selectedUser?.address ?? 'N/A'}</span>
         </div>
         <div class="flex justify-between py-2">
