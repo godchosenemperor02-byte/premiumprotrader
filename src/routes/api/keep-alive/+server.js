@@ -1,4 +1,4 @@
-Import { json } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '$env/static/private';
 
 export async function GET() {
