@@ -4,7 +4,14 @@
   // Svelte 5 Runes Props & Safe Derived Access
   let { data } = $props();
   let supabase = $derived(data?.supabase);
-  
+
+  // Dialog State Management
+  let isAddOpen = $state(false);
+  let isEditOpen = $state(false);
+  let isDeleteOpen = $state(false);
+  let isDetailsOpen = $state(false);
+  let selectedUser = $state(null);
+
   // Derived variables to avoid optional chaining in templates
   let subscriptionCount = $derived(
     Array.isArray(data?.subscription) ? data.subscription.length : 0
@@ -24,12 +31,6 @@
     {title:'Platinum', price:'15,000',perks:['All Gold Features','Personalized Strategy', '24/7 VIP Support','Exclusive Opportunities','Portfolio Diversification'], logo:'👑'},
     {title:'Diamond', price:'25,000',perks:['All Platinum Features','Custom AI Trading', 'Private Investment Access','Weatlh Planning','Concierge Management'], logo:'💎'}
   ];
-
-  // Dialog State Management
-  let isAddOpen = $state(false);
-  let isEditOpen = $state(false);
-  let isDeleteOpen = $state(false);
-  let selectedUser = $state(null);
 
   // Status, Error & Feedback Management
   let isLoading = $state(false);
@@ -100,10 +101,18 @@
     isDeleteOpen = true;
   }
 
+  function openDetailsModal(user) {
+    selectedUser = user;
+    errorMessage = '';
+    successMessage = '';
+    isDetailsOpen = true;
+  }
+
   function closeModals() {
     isAddOpen = false;
     isEditOpen = false;
     isDeleteOpen = false;
+    isDetailsOpen = false;
     selectedUser = null;
     errorMessage = '';
     successMessage = '';
@@ -120,7 +129,6 @@
     errorMessage = '';
     successMessage = '';
 
-    // 1. Fetch the latest deposit transaction for this user
     const { data: transactions, error: fetchError } = await supabase
       .from('transactions')
       .select('id, status, amount')
@@ -151,7 +159,6 @@
 
     const depositAmount = Number(lastDeposit.amount) || 0;
 
-    // 2. Update transaction status
     const { error: updateTxError } = await supabase
       .from('transactions')
       .update({ status: 'completed' })
@@ -163,7 +170,6 @@
       return;
     }
 
-    // 3. Update capital
     const currentCapital = Number(editForm.capital) || 0;
     const newCapital = currentCapital + depositAmount;
 
@@ -192,7 +198,6 @@
     errorMessage = '';
     successMessage = '';
 
-    // 1. Fetch the latest withdrawal transaction for this user
     const { data: transactions, error: fetchError } = await supabase
       .from('transactions')
       .select('id, status, amount')
@@ -223,7 +228,6 @@
 
     const withdrawalAmount = Number(lastWithdrawal.amount) || 0;
 
-    // 2. Update transaction status
     const { error: updateTxError } = await supabase
       .from('transactions')
       .update({ status: 'completed' })
@@ -235,7 +239,6 @@
       return;
     }
 
-    // 3. Update capital (deduct withdrawal)
     const currentCapital = Number(editForm.capital) || 0;
     const newCapital = Math.max(0, currentCapital - withdrawalAmount);
 
