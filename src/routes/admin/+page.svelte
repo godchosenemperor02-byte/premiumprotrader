@@ -419,117 +419,49 @@
         </div>
       </div>
 
-      <!-- Mobile User Cards View (Visible on Small Screens) -->
-      <div class="block md:hidden space-y-3">
-        {#if profileList.length > 0}
-          {#each profileList as user}
-            <div class="p-4 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3 backdrop-blur-md">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-200 shrink-0">
-                    {user.first_name?.[0]?.toUpperCase() ?? 'U'}
-                  </div>
-                  <div class="min-w-0">
-                    <span class="block text-sm font-semibold text-slate-100 truncate">{user.first_name ?? 'Unregistered'} {user.last_name ?? ''}</span>
-                    <span class="block text-xs text-slate-400 truncate">{user.email ?? 'No email bound'}</span>
-                  </div>
-                </div>
-                <span class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                  {user.currency ?? '$'} {user.balance ?? '0.00'}
-                </span>
-              </div>
-              <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-800/60">
-                <span class="font-mono text-slate-500 truncate max-w-[140px]">ID: {user.id}</span>
-                <div class="flex gap-2">
-                  <button 
-                    onclick={() => openEditModal(user)}
-                    class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 text-xs font-medium"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onclick={() => openDeleteModal(user)}
-                    class="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-medium"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          {/each}
-        {:else}
-          <div class="p-6 text-center text-slate-500 text-xs bg-slate-900/40 rounded-2xl border border-slate-800">
-            No users found in database.
-          </div>
-        {/if}
-      </div>
-
-      <!-- Desktop User Table View (Hidden on Small Screens) -->
-      <div class="hidden md:block overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl backdrop-blur-md">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr class="bg-slate-900/90 border-b border-slate-800 text-slate-400 font-semibold text-xs uppercase tracking-wider">
-                <th class="px-6 py-4">User</th>
-                <th class="px-6 py-4">Account ID</th>
-                <th class="px-6 py-4">Balance</th>
-                <th class="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800/60 text-slate-300">
-              {#if profileList.length > 0}
-                {#each profileList as user}
-                  <tr class="hover:bg-slate-800/40 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-200">
-                          {user.first_name?.[0]?.toUpperCase() ?? 'U'}
-                        </div>
-                        <div>
-                          <span class="block text-sm font-semibold text-slate-100">{user.first_name ?? 'Unregistered'} {user.last_name ?? ''}</span>
-                          <span class="block text-xs text-slate-400">{user.email ?? 'No email bound'}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap font-mono text-xs text-slate-400">
-                      <span class="bg-slate-950/60 px-2.5 py-1 rounded-md border border-slate-800">{user.id}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                        {user.currency ?? '$'} {user.balance ?? '0.00'}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                      <button 
-                        onclick={() => openEditModal(user)}
-                        class="text-xs font-medium px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition-all focus:ring-2 focus:ring-slate-600/40"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onclick={() => openDeleteModal(user)}
-                        class="text-xs font-medium px-3.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all focus:ring-2 focus:ring-rose-500/40"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                {/each}
-              {:else}
-                <tr>
-                  <td colspan="4" class="px-6 py-12 text-center text-slate-500 text-sm">
-                    No users found in database.
-                  </td>
-                </tr>
-              {/if}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
+     <!-- Mobile User Cards View -->
+<!-- ... inside the actions div of each mobile card ... -->
+<div class="flex gap-2">
+  <button 
+    onclick={() => openDetailsModal(user)}
+    class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg border border-slate-700 text-xs font-medium"
+  >
+    View
+  </button>
+  <button 
+    onclick={() => openEditModal(user)}
+    class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 text-xs font-medium"
+  >
+    Edit
+  </button>
+  <button 
+    onclick={() => openDeleteModal(user)}
+    class="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-medium"
+  >
+    Delete
+  </button>
 </div>
 
+<!-- Desktop User Table View -->
+<!-- ... inside <td class="px-6 py-4 whitespace-nowrap text-right space-x-2"> ... -->
+<button 
+  onclick={() => openDetailsModal(user)}
+  class="text-xs font-medium px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg border border-slate-700 transition-all focus:ring-2 focus:ring-slate-600/40"
+>
+  View
+</button>
+<button 
+  onclick={() => openEditModal(user)}
+  class="text-xs font-medium px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition-all focus:ring-2 focus:ring-slate-600/40"
+>
+  Edit
+</button>
+<button 
+  onclick={() => openDeleteModal(user)}
+  class="text-xs font-medium px-3.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all focus:ring-2 focus:ring-rose-500/40"
+>
+  Delete
+</button>
 <!-- ADD USER MODAL -->
 {#if isAddOpen}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
@@ -859,6 +791,92 @@
           {/if}
         </button>
       </div>
+    </div>
+  </div>
+{/if}
+<!-- USER DETAILS MODAL -->
+{#if isDetailsOpen}
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm shrink-0">
+            {selectedUser?.first_name?.[0]?.toUpperCase() ?? 'U'}
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-white">
+              {selectedUser?.first_name ?? 'Unregistered'} {selectedUser?.last_name ?? ''}
+            </h3>
+            <p class="text-xs text-slate-400">{selectedUser?.email ?? 'No email bound'}</p>
+          </div>
+        </div>
+        <button onclick={closeModals} class="text-slate-400 hover:text-white text-sm p-1 rounded-md hover:bg-slate-800 transition-colors">✕</button>
+      </div>
+
+      <!-- Account Overview Cards -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+          <span class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Balance</span>
+          <span class="text-base font-mono font-bold text-emerald-400">
+            {selectedUser?.currency ?? '$'} {selectedUser?.balance ?? '0.00'}
+          </span>
+        </div>
+        <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+          <span class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Profit</span>
+          <span class="text-base font-mono font-bold text-blue-400">
+            {selectedUser?.currency ?? '$'} {selectedUser?.profit ?? '0.00'}
+          </span>
+        </div>
+        <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+          <span class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Capital</span>
+          <span class="text-base font-mono font-bold text-purple-400">
+            {selectedUser?.currency ?? '$'} {selectedUser?.capital ?? '0.00'}
+          </span>
+        </div>
+        <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+          <span class="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Signal Value</span>
+          <span class="text-base font-mono font-bold text-amber-400">
+            {selectedUser?.signal ?? '0'}
+          </span>
+        </div>
+      </div>
+
+      <!-- Detailed Attributes List -->
+      <div class="p-4 bg-slate-950/40 border border-slate-800/80 rounded-xl divide-y divide-slate-800/60 text-xs">
+        <div class="flex justify-between py-2">
+          <span class="text-slate-400">Account ID</span>
+          <span class="font-mono text-slate-200">{selectedUser?.id ?? 'N/A'}</span>
+        </div>
+        <div class="flex justify-between py-2">
+          <span class="text-slate-400">Country</span>
+          <span class="text-slate-200">{selectedUser?.country ?? 'N/A'}</span>
+        </div>
+        <div class="flex justify-between py-2">
+          <span class="text-slate-400">Phone Number</span>
+          <span class="text-slate-200">{selectedUser?.phonenumber ?? 'N/A'}</span>
+        </div>
+        <div class="flex justify-between py-2">
+          <span class="text-slate-400">Account Signal Plan</span>
+          <span class="text-slate-200">{selectedUser?.account_signal ?? 'None'}</span>
+        </div>
+        <div class="flex justify-between py-2">
+          <span class="text-slate-400">Copied Expert</span>
+          <span class="text-slate-200">{selectedUser?.copy_expert ?? 'None'}</span>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <button 
+          onclick={closeModals} 
+          class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition-all"
+        >
+          Close
+        </button>
+      </div>
+
     </div>
   </div>
 {/if}
