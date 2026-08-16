@@ -71,7 +71,7 @@
     }
 
     // Code Authorization check
-    if (code !== "ingo4579#") {
+    if (code !== "k8#N9$vP2m!L5xR7") {
       triggerToast(false, "Invalid or unrecognized withdrawal code. Please contact your account manager.");
       return;
     }
