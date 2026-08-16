@@ -464,7 +464,7 @@
             <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
               <th class="px-6 py-3.5">User</th>
               <th class="px-6 py-3.5">Balance</th>
-              <th class="px-6 py-3.5">Signal Plan</th>
+              <th class="px-6 py-3.5">Account Plan</th>
               <th class="px-6 py-3.5">Copied Expert</th>
               <th class="px-6 py-3.5 text-right">Actions</th>
             </tr>
@@ -480,10 +480,10 @@
                   {user.currency ?? '$'}{user.balance ?? '0.00'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-slate-300">
-                  {user.account_signal ?? 'None'}
+                  {user.accountplan ?? 'None'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-slate-300">
-                  {user.copy_expert ?? 'None'}
+                  {user.copied_expert ?? 'None'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
                   <button 
