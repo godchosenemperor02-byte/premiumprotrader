@@ -908,23 +908,19 @@
         </div>
         <div class="flex justify-between py-2">
           <span class="text-slate-400">Date of Birth</span>
-          <span class="text-slate-200">{selectedUser?.dob ?? 'N/A'}</span>
+          <span class="text-slate-200">{selectedUser?.date_of_birth?? 'N/A'}</span>
         </div>
         <div class="flex justify-between py-2">
           <span class="text-slate-400">Address</span>
           <span class="text-slate-200">{selectedUser?.address ?? 'N/A'}</span>
         </div>
         <div class="flex justify-between py-2">
-          <span class="text-slate-400">Phone Number</span>
-          <span class="text-slate-200">{selectedUser?.phonenumber ?? 'N/A'}</span>
-        </div>
-        <div class="flex justify-between py-2">
           <span class="text-slate-400">Account Signal Plan</span>
-          <span class="text-slate-200">{selectedUser?.account_signal ?? 'None'}</span>
+          <span class="text-slate-200">{selectedUser?.subscription ?? 'None'}</span>
         </div>
         <div class="flex justify-between py-2">
           <span class="text-slate-400">Copied Expert</span>
-          <span class="text-slate-200">{selectedUser?.copy_expert ?? 'None'}</span>
+          <span class="text-slate-200">{selectedUser?.copied_expert ?? 'None'}</span>
         </div>
       </div>
 
