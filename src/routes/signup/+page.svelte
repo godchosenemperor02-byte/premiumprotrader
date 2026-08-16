@@ -2,7 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
-  import { Eye, Lock, Mail, ShieldCheck, ArrowRight, ALargeSmall, Loader2, Globe, Phone } from "lucide-svelte";
+  import { Eye, Lock, Mail, ShieldCheck, ArrowRight, ALargeSmall, Loader2, Globe, Phone, MapPin, Calendar } from "lucide-svelte";
   import { supabase } from "$lib/supabase";
   import { goto } from "$app/navigation";
   
@@ -14,6 +14,8 @@
     country: '',
     currency: '',
     phonenumber: '',
+    address: '',
+    dob: '',
     admin: false
   })
   let loading = $state(false);
@@ -293,9 +295,11 @@
           country: user.country,
           currency: user.currency,
           phone_number: user.phonenumber,
+          address: user.address,
+          dob: user.dob,
           admin: user.admin
+        }
       }
-    }
     });
 
     if (error) {
@@ -304,7 +308,7 @@
     } else {
       successMsg = "Check your email for the confirmation link.";
       loading = false;
-      goto('/login', { replaceState: true })
+      goto('/login', { replaceState: true });
     }
   }
 </script>
@@ -328,7 +332,7 @@
         </div>
 
         <h1 class="text-5xl md:text-6xl font-serif font-medium mb-6 leading-tight">
-        Create a Live Account.
+          Create a Live Account.
         </h1>
         <p class="text-slate-400 max-w-md text-lg leading-relaxed mb-12">
           Access institutional-grade trading suite. Experience lightning-fast execution and deep liquidity in the world's most demanding markets.
@@ -386,7 +390,7 @@
             <div class="space-y-2">
               <Label for="firstname" class="text-xs uppercase text-slate-500 tracking-wider">First Name</Label>
               <div class="relative">
-                  <ALargeSmall class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <ALargeSmall class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
                 <Input 
                   id="firstname" 
                   type="text"
@@ -400,7 +404,7 @@
             <div class="space-y-2">
               <Label for="lastname" class="text-xs uppercase text-slate-500 tracking-wider">Last Name</Label>
               <div class="relative">
-              <ALargeSmall class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <ALargeSmall class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
                 <Input 
                   id="lastname" 
                   type="text"
@@ -415,9 +419,54 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-2">
+              <Label for="dob" class="text-xs uppercase text-slate-500 tracking-wider">Date of Birth</Label>
+              <div class="relative">
+                <Calendar class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <Input 
+                  id="dob" 
+                  type="date"
+                  required
+                  bind:value={user.dob} 
+                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500 text-slate-200"
+                />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <Label for="phone" class="text-xs uppercase text-slate-500 tracking-wider">Phone Number</Label>
+              <div class="relative">
+                <Phone class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <Input 
+                  id="phone" 
+                  required
+                  bind:value={user.phonenumber} 
+                  placeholder="+1 (555) 000-0000" 
+                  type="text"
+                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="address" class="text-xs uppercase text-slate-500 tracking-wider">Residential Address</Label>
+            <div class="relative">
+              <MapPin class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+              <Input 
+                id="address" 
+                type="text"
+                placeholder="123 Financial District Way" 
+                required
+                bind:value={user.address} 
+                class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
               <Label for="country" class="text-xs uppercase text-slate-500 tracking-wider">Country</Label>
               <div class="relative">
-                  <Globe class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <Globe class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
                 <select
                   id="country"
                   required
@@ -432,54 +481,6 @@
                 </select>
               </div>
             </div>
-            <div class="space-y-2">
-              <Label for="phone" class="text-xs uppercase text-slate-500 tracking-wider">Phone Number</Label>
-              <div class="relative">
-              <Phone class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
-                <Input 
-                  id="phone" 
-                  required
-                  bind:value={user.phonenumber} 
-                  placeholder="+1 (555) 000-0000" 
-                  type='text'
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-
-           <div class="space-y-2">
-            <Label for="email" class="text-xs uppercase text-slate-500 tracking-wider">Terminal ID / Email</Label>
-            <div class="relative">
-              <Mail class="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-              <Input 
-                id="email" 
-                type="email"
-                placeholder="name@firm.com" 
-                required
-                bind:value={user.email} 
-                class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="key" class="text-xs uppercase text-slate-500 tracking-wider">Security Key</Label>
-              <div class="relative">
-                <Lock class="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                <Input 
-                  id="key" 
-                  type="password" 
-                  placeholder="••••••••••••" 
-                  required
-                  bind:value={user.password} 
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12"
-                />
-                <Eye class="absolute right-3 top-3 h-4 w-4 text-slate-500 cursor-pointer" />
-              </div>
-            </div>
-
             <div class="space-y-2">
               <Label for="currency" class="text-xs uppercase text-slate-500 tracking-wider">Currency</Label>
               <div class="relative">
@@ -498,7 +499,37 @@
             </div>
           </div>
 
-          
+          <div class="space-y-2">
+            <Label for="email" class="text-xs uppercase text-slate-500 tracking-wider">Terminal ID / Email</Label>
+            <div class="relative">
+              <Mail class="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Input 
+                id="email" 
+                type="email"
+                placeholder="name@firm.com" 
+                required
+                bind:value={user.email} 
+                class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="key" class="text-xs uppercase text-slate-500 tracking-wider">Security Key</Label>
+            <div class="relative">
+              <Lock class="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Input 
+                id="key" 
+                type="password" 
+                placeholder="••••••••••••" 
+                required
+                bind:value={user.password} 
+                class="bg-slate-900/50 border-slate-700 pl-10 h-12"
+              />
+              <Eye class="absolute right-3 top-3 h-4 w-4 text-slate-500 cursor-pointer" />
+            </div>
+          </div>
+
           <Button type="submit" disabled={loading} class="w-full h-12 bg-blue-700 hover:bg-blue-600 text-white font-semibold gap-2">
             {#if loading}
               <Loader2 class="h-4 w-4 animate-spin" /> Processing...
@@ -511,9 +542,9 @@
         <div class="pt-8 text-center space-y-4">
           <p class="text-sm text-slate-500">Already have an account?</p>
           <a href="/login">
-        <Button variant="outline" class="w-full text-black h-11">
-            Login
-          </Button>
+            <Button variant="outline" class="w-full text-black h-11">
+              Login
+            </Button>
           </a>
           
           <div class="flex justify-center gap-6 pt-4">
