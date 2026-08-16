@@ -272,12 +272,13 @@
 
   const currencyOptions = Array.from(new Set(countryOptions.map(c => c.currency)));
 
-  function onCountryChange(e: Event) {
-    const val = (e.target as HTMLSelectElement).value;
-    user.country = val;
-    const found = countryOptions.find(c => c.code === val);
-    user.currency = found ? found.currency : '';
-  }
+ function onCountryChange(e: Event) {
+  const code = (e.target as HTMLSelectElement).value;
+  const found = countryOptions.find(c => c.code === code);
+
+  user.country = found ? found.name : '';
+  user.currency = found ? found.currency : '';
+}
 
   async function handleSignup(e: SubmitEvent) {
     e.preventDefault();
@@ -462,26 +463,18 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="country" class="text-xs uppercase text-slate-500 tracking-wider">Country</Label>
-              <div class="relative">
-                <Globe class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
-                <select
-                  id="country"
-                  required
-                  bind:value={user.country}
-                  onchange={onCountryChange}
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 w-full text-slate-200 rounded"
-                >
-                  <option value="" disabled>Select country</option>
-                  {#each countryOptions as c}
-                    <option value={c.code}>{c.name}</option>
-                  {/each}
-                </select>
-              </div>
-            </div>
-            <div class="space-y-2">
+      <select
+  id="country"
+  required
+  onchange={onCountryChange}
+  class="bg-slate-900/50 border-slate-700 pl-10 h-12 w-full text-slate-200 rounded"
+>
+  <option value="" disabled selected>Select country</option>
+
+  {#each countryOptions as c}
+    <option value={c.code}>{c.name}</option>
+  {/each}
+</select>            <div class="space-y-2">
               <Label for="currency" class="text-xs uppercase text-slate-500 tracking-wider">Currency</Label>
               <div class="relative">
                 <div class="absolute left-3 top-3 h-4 w-4 text-slate-500 flex items-center justify-center">$</div>
