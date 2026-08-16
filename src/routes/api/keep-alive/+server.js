@@ -1,11 +1,11 @@
 import { json } from '@sveltejs/kit';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '$env/static/private';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/private';
 
 export async function GET() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+  const res = await fetch(`${PUBLIC_SUPABASE_URL}/rest/v1/`, {
     headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      apikey: PUBLIC_SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${PUBLIC_SUPABASE_ANON_KEY}`
     }
   });
 
