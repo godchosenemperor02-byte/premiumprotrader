@@ -314,216 +314,288 @@
   }
 </script>
 
-<div class="min-h-screen bg-[#05080a] text-slate-200 flex flex-col font-sans">
+<script lang="ts">
+  import {
+    ShieldCheck,
+    ALargeSmall,
+    Calendar,
+    Phone,
+    MapPin,
+    Globe,
+    Mail,
+    Lock,
+    Eye,
+    Loader2,
+    ArrowRight
+  } from 'lucide-react-svelte';
+  import { Label } from '$lib/components/ui/label';
+  import { Input } from '$lib/components/ui/input';
+  import { Button } from '$lib/components/ui/button';
+
+  let loading = $state(false);
+  let errorMsg = $state('');
+  let successMsg = $state('');
+
+  let user = $state({
+    firstname: '',
+    lastname: '',
+    dob: '',
+    phonenumber: '',
+    address: '',
+    country: '',
+    currency: '',
+    email: '',
+    password: ''
+  });
+
+  const countryOptions = [
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'AU', name: 'Australia' }
+  ];
+
+  const currencyOptions = ['USD', 'EUR', 'GBP', 'AUD', 'CAD'];
+
+  function handleSignup(e: SubmitEvent) {
+    e.preventDefault();
+    loading = true;
+    // Handle form submission logic
+  }
+
+  function onCountryChange(e: Event) {
+    const target = e.target as HTMLSelectElement;
+    user.country = target.value;
+  }
+</script>
+
+<div class="flex min-h-screen flex-col bg-[#05080a] font-sans text-slate-200">
   <!-- Main Content Split -->
   <main class="flex flex-1 flex-col-reverse md:flex-row">
-    
     <!-- Left Section: Hero/Branding -->
-    <section class="relative flex-1 p-12 flex flex-col justify-between overflow-hidden border-r border-slate-800/50">
+    <section class="relative flex flex-1 flex-col justify-between overflow-hidden border-r border-slate-800/50 p-8 md:p-12">
       <!-- Background Glow/Effect -->
-      <div class="absolute inset-0 bg-[url('/bg-trading-chart.jpg')] opacity-20 bg-cover bg-center"></div>
+      <div class="absolute inset-0 bg-[url('/bg-trading-chart.jpg')] bg-cover bg-center opacity-20"></div>
       <div class="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent"></div>
 
       <div class="relative z-10">
-        <div class="flex items-center gap-2 mb-16">
-          <div class="bg-blue-600 p-2 rounded">
-            <ShieldCheck class="text-white h-6 w-6" />
+        <div class="mb-12 flex items-center gap-2 md:mb-16">
+          <div class="rounded bg-blue-600 p-2">
+            <ShieldCheck class="h-6 w-6 text-white" />
           </div>
-          <a href="/"><span class="text-xl font-semibold tracking-tight italic">Premuim-pro-Trader</span></a>
+          <a href="/"><span class="text-xl font-semibold italic tracking-tight">Premium-Pro-Trader</span></a>
         </div>
 
-        <h1 class="text-5xl md:text-6xl font-serif font-medium mb-6 leading-tight">
+        <h1 class="mb-6 font-serif text-4xl font-medium leading-tight md:text-6xl">
           Create a Live Account.
         </h1>
-        <p class="text-slate-400 max-w-md text-lg leading-relaxed mb-12">
+        <p class="mb-12 max-w-md text-lg leading-relaxed text-slate-400">
           Access institutional-grade trading suite. Experience lightning-fast execution and deep liquidity in the world's most demanding markets.
         </p>
 
         <!-- Stats Grid -->
-        <div class="grid grid-cols-2 gap-y-10 gap-x-4 max-w-sm">
+        <div class="grid max-w-sm grid-cols-2 gap-x-4 gap-y-10">
           <div>
-            <div class="text-yellow-500 font-mono text-lg font-bold">30ms</div>
+            <div class="font-mono text-lg font-bold text-yellow-500">30ms</div>
             <div class="text-xs uppercase tracking-widest text-slate-500">Avg. Execution</div>
           </div>
           <div>
-            <div class="text-yellow-500 font-mono text-lg font-bold">300+</div>
+            <div class="font-mono text-lg font-bold text-yellow-500">300+</div>
             <div class="text-xs uppercase tracking-widest text-slate-500">Instruments</div>
           </div>
           <div>
-            <div class="text-yellow-500 font-mono text-lg font-bold">Deep</div>
+            <div class="font-mono text-lg font-bold text-yellow-500">Deep</div>
             <div class="text-xs uppercase tracking-widest text-slate-500">Pool Liquidity</div>
           </div>
           <div>
-            <div class="text-yellow-500 font-mono text-lg font-bold">24/7</div>
+            <div class="font-mono text-lg font-bold text-yellow-500">24/7</div>
             <div class="text-xs uppercase tracking-widest text-slate-500">Global Support</div>
           </div>
         </div>
       </div>
 
-      <div class="relative z-10 flex items-center gap-2 text-sm text-slate-500">
+      <div class="relative z-10 mt-12 flex items-center gap-2 text-sm text-slate-500 md:mt-0">
         <ShieldCheck class="h-4 w-4" />
         <span>Military-grade encryption securing all transactions.</span>
       </div>
     </section>
 
-    <!-- Right Section: Login Form -->
-    <section class="flex-1 p-12 flex flex-col items-center justify-center bg-[#080c10]">
-      <div class="w-full max-w-md space-y-8">
+    <!-- Right Section: Form -->
+    <section class="flex flex-1 flex-col items-center justify-center bg-[#080c10] p-8 md:p-12">
+      <div class="w-full max-w-md space-y-6">
         <div>
-          <span class="text-yellow-600 uppercase text-xs font-bold tracking-widest">Institutional Access</span>
-          <h2 class="text-4xl font-serif mt-2">Secure Sign Up</h2>
+          <span class="text-xs font-bold uppercase tracking-widest text-yellow-600">Institutional Access</span>
+          <h2 class="mt-2 font-serif text-3xl font-medium md:text-4xl">Secure Sign Up</h2>
         </div>
 
         {#if errorMsg}
-          <div class="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded text-sm">
+          <div class="rounded border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-500">
             {errorMsg}
           </div>
         {/if}
 
         {#if successMsg}
-          <div class="bg-green-500/10 border border-green-500/20 text-green-500 p-3 rounded text-sm">
+          <div class="rounded border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-500">
             {successMsg}
           </div>
         {/if}
 
-        <form class="space-y-6" onsubmit={handleSignup}>
-          <div class="grid grid-cols-2 gap-4">
+        <form class="space-y-4" onsubmit={handleSignup}>
+          <!-- Name Row -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="space-y-2">
-              <Label for="firstname" class="text-xs uppercase text-slate-500 tracking-wider">First Name</Label>
+              <Label for="firstname" class="text-xs uppercase tracking-wider text-slate-500">First Name</Label>
               <div class="relative">
-                <ALargeSmall class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <ALargeSmall class="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                 <Input 
                   id="firstname" 
                   type="text"
                   placeholder="First Name"
                   required
                   bind:value={user.firstname} 
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
+                  class="h-12 border-slate-700 bg-slate-900/50 pl-10 focus:ring-blue-500"
                 />
               </div>
             </div>
+
             <div class="space-y-2">
-              <Label for="lastname" class="text-xs uppercase text-slate-500 tracking-wider">Last Name</Label>
+              <Label for="lastname" class="text-xs uppercase tracking-wider text-slate-500">Last Name</Label>
               <div class="relative">
-                <ALargeSmall class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <ALargeSmall class="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                 <Input 
                   id="lastname" 
                   type="text"
                   required
                   bind:value={user.lastname} 
                   placeholder="Last Name" 
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
+                  class="h-12 border-slate-700 bg-slate-900/50 pl-10 focus:ring-blue-500"
                 />
               </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <!-- DOB / Phone Row -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="space-y-2">
-              <Label for="dob" class="text-xs uppercase text-slate-500 tracking-wider">Date of Birth</Label>
+              <Label for="dob" class="text-xs uppercase tracking-wider text-slate-500">Date of Birth</Label>
               <div class="relative">
-                <Calendar class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <Calendar class="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                 <Input 
                   id="dob" 
                   type="date"
                   required
                   bind:value={user.dob} 
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500 text-slate-200"
+                  class="h-12 border-slate-700 bg-slate-900/50 pl-10 text-slate-200 focus:ring-blue-500"
                 />
               </div>
             </div>
+
             <div class="space-y-2">
-              <Label for="phone" class="text-xs uppercase text-slate-500 tracking-wider">Phone Number</Label>
+              <Label for="phone" class="text-xs uppercase tracking-wider text-slate-500">Phone Number</Label>
               <div class="relative">
-                <Phone class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+                <Phone class="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                 <Input 
                   id="phone" 
                   required
                   bind:value={user.phonenumber} 
                   placeholder="+1 (555) 000-0000" 
-                  type="text"
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
+                  type="tel"
+                  class="h-12 border-slate-700 bg-slate-900/50 pl-10 focus:ring-blue-500"
                 />
               </div>
             </div>
           </div>
 
+          <!-- Address -->
           <div class="space-y-2">
-            <Label for="address" class="text-xs uppercase text-slate-500 tracking-wider">Residential Address</Label>
+            <Label for="address" class="text-xs uppercase tracking-wider text-slate-500">Residential Address</Label>
             <div class="relative">
-              <MapPin class="absolute left-3 top-3 h-4 w-4 text-slate-500"/>
+              <MapPin class="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
               <Input 
                 id="address" 
                 type="text"
                 placeholder="123 Financial District Way" 
                 required
                 bind:value={user.address} 
-                class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
+                class="h-12 border-slate-700 bg-slate-900/50 pl-10 focus:ring-blue-500"
               />
             </div>
           </div>
 
-      <select
-  id="country"
-  required
-  onchange={onCountryChange}
-  class="bg-slate-900/50 border-slate-700 pl-10 h-12 w-full text-slate-200 rounded"
->
-  <option value="" disabled selected>Select country</option>
-
-  {#each countryOptions as c}
-    <option value={c.code}>{c.name}</option>
-  {/each}
-</select>            <div class="space-y-2">
-              <Label for="currency" class="text-xs uppercase text-slate-500 tracking-wider">Currency</Label>
+          <!-- Country / Currency Row -->
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="country" class="text-xs uppercase tracking-wider text-slate-500">Country</Label>
               <div class="relative">
-                <div class="absolute left-3 top-3 h-4 w-4 text-slate-500 flex items-center justify-center">$</div>
+                <Globe class="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
+                <select
+                  id="country"
+                  required
+                  onchange={onCountryChange}
+                  class="h-12 w-full rounded border border-slate-700 bg-slate-900/50 pl-10 pr-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="" disabled selected>Select country</option>
+                  {#each countryOptions as c}
+                    <option value={c.code} class="bg-slate-900 text-slate-200">{c.name}</option>
+                  {/each}
+                </select>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <Label for="currency" class="text-xs uppercase tracking-wider text-slate-500">Currency</Label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-3.5 text-sm font-semibold text-slate-500">$</span>
                 <select
                   id="currency"
                   bind:value={user.currency}
-                  class="bg-slate-900/50 border-slate-700 pl-10 h-12 w-full text-slate-200 rounded"
+                  class="h-12 w-full rounded border border-slate-700 bg-slate-900/50 pl-10 pr-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="" disabled>Select currency</option>
+                  <option value="" disabled selected>Select currency</option>
                   {#each currencyOptions as cur}
-                    <option value={cur}>{cur}</option>
+                    <option value={cur} class="bg-slate-900 text-slate-200">{cur}</option>
                   {/each}
                 </select>
               </div>
             </div>
           </div>
 
+          <!-- Email -->
           <div class="space-y-2">
-            <Label for="email" class="text-xs uppercase text-slate-500 tracking-wider">Terminal ID / Email</Label>
+            <Label for="email" class="text-xs uppercase tracking-wider text-slate-500">Terminal ID / Email</Label>
             <div class="relative">
-              <Mail class="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Mail class="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
               <Input 
                 id="email" 
                 type="email"
                 placeholder="name@firm.com" 
                 required
                 bind:value={user.email} 
-                class="bg-slate-900/50 border-slate-700 pl-10 h-12 focus:ring-blue-500"
+                class="h-12 border-slate-700 bg-slate-900/50 pl-10 focus:ring-blue-500"
               />
             </div>
           </div>
 
+          <!-- Password -->
           <div class="space-y-2">
-            <Label for="key" class="text-xs uppercase text-slate-500 tracking-wider">Security Key</Label>
+            <Label for="key" class="text-xs uppercase tracking-wider text-slate-500">Security Key</Label>
             <div class="relative">
-              <Lock class="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Lock class="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
               <Input 
                 id="key" 
                 type="password" 
                 placeholder="••••••••••••" 
                 required
                 bind:value={user.password} 
-                class="bg-slate-900/50 border-slate-700 pl-10 h-12"
+                class="h-12 border-slate-700 bg-slate-900/50 pl-10 pr-10"
               />
-              <Eye class="absolute right-3 top-3 h-4 w-4 text-slate-500 cursor-pointer" />
+              <button type="button" class="absolute right-3 top-3.5 text-slate-500 hover:text-slate-300">
+                <Eye class="h-4 w-4" />
+              </button>
             </div>
           </div>
 
-          <Button type="submit" disabled={loading} class="w-full h-12 bg-blue-700 hover:bg-blue-600 text-white font-semibold gap-2">
+          <Button type="submit" disabled={loading} class="h-12 w-full gap-2 bg-blue-700 font-semibold text-white hover:bg-blue-600">
             {#if loading}
               <Loader2 class="h-4 w-4 animate-spin" /> Processing...
             {:else}
@@ -532,21 +604,21 @@
           </Button>
         </form>
 
-        <div class="pt-8 text-center space-y-4">
+        <div class="space-y-4 pt-4 text-center">
           <p class="text-sm text-slate-500">Already have an account?</p>
-          <a href="/login">
-            <Button variant="outline" class="w-full text-black h-11">
+          <a href="/login" class="block w-full">
+            <Button variant="outline" class="h-11 w-full border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white">
               Login
             </Button>
           </a>
-          
-          <div class="flex justify-center gap-6 pt-4">
-             <div class="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-widest">
-               <span class="h-2 w-2 rounded-full bg-blue-500"></span> Market: Open
-             </div>
-             <div class="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-widest">
-               <span class="h-2 w-2 rounded-full bg-yellow-500"></span> Latency: 12ms
-             </div>
+
+          <div class="flex justify-center gap-6 pt-2">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-500">
+              <span class="h-2 w-2 rounded-full bg-blue-500"></span> Market: Open
+            </div>
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-500">
+              <span class="h-2 w-2 rounded-full bg-yellow-500"></span> Latency: 12ms
+            </div>
           </div>
         </div>
       </div>
@@ -554,12 +626,12 @@
   </main>
 
   <!-- Footer -->
-  <footer class="p-8 bg-[#040608] border-t border-slate-900">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-8">
-      <p class="text-[10px] text-slate-600 max-w-xl leading-relaxed uppercase tracking-tight">
-        © 2024 Premuim-pro-trader. Member FINRA/SIPC. High-risk investment notice: CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. 74% of retail i[...]
+  <footer class="border-t border-slate-900 bg-[#040608] p-8">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 md:flex-row">
+      <p class="max-w-xl text-[10px] uppercase leading-relaxed tracking-tight text-slate-600">
+        © 2024 Premium-pro-trader. Member FINRA/SIPC. High-risk investment notice: CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage.
       </p>
-      <nav class="flex gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest self-center">
+      <nav class="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">
         <a href="/" class="hover:text-white">Privacy Policy</a>
         <a href="/" class="hover:text-white">Terms of Service</a>
         <a href="/" class="hover:text-white">Regulatory Status</a>
@@ -567,7 +639,3 @@
     </div>
   </footer>
 </div>
-
-<style>
-  /* Optional: Import a serif font like Playfair Display or Source Serif 4 in your global.css to match the headings */
-</style>
