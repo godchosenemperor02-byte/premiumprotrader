@@ -854,6 +854,14 @@
           <span class="text-slate-200">{selectedUser?.country ?? 'N/A'}</span>
         </div>
         <div class="flex justify-between py-2">
+          <span class="text-slate-400">Country</span>
+          <span class="text-slate-200">{selectedUser?.dob ?? 'N/A'}</span>
+        </div>
+        <div class="flex justify-between py-2">
+          <span class="text-slate-400">Country</span>
+          <span class="text-slate-200">{selectedUser?.address ?? 'N/A'}</span>
+        </div>
+        <div class="flex justify-between py-2">
           <span class="text-slate-400">Phone Number</span>
           <span class="text-slate-200">{selectedUser?.phonenumber ?? 'N/A'}</span>
         </div>
