@@ -7,6 +7,7 @@
 
   // Modal State Management
   let isAddOpen = $state(false);
+  let isEditOpen = $state(false);
   let isDeleteOpen = $state(false);
   let selectedExpert = $state(null);
 
@@ -14,7 +15,7 @@
   let isLoading = $state(false);
   let errorMessage = $state('');
 
-  // Initial Form State for Adding Traders
+  // Initial Form State for Traders
   let traderForm = $state({
     name: '',
     description: '',
@@ -39,6 +40,21 @@
     isAddOpen = true;
   }
 
+  function openEditModal(expert) {
+    selectedExpert = expert;
+    traderForm = {
+      name: expert.name ?? '',
+      description: expert.description ?? expert.desc ?? '',
+      monthly_returns: expert.monthly_returns ?? '+0.0%',
+      winrate: expert.winrate ?? '0%',
+      followers: expert.followers ?? 0,
+      trades: expert.trades ?? 0,
+      copy_price: expert.copy_price ?? 0
+    };
+    errorMessage = '';
+    isEditOpen = true;
+  }
+
   function openDeleteModal(expert) {
     selectedExpert = expert;
     errorMessage = '';
@@ -47,6 +63,7 @@
 
   function closeModals() {
     isAddOpen = false;
+    isEditOpen = false;
     isDeleteOpen = false;
     selectedExpert = null;
     errorMessage = '';
@@ -78,6 +95,42 @@
           copy_price: Number(traderForm.copy_price) || 0
         }
       ]);
+
+    isLoading = false;
+
+    if (error) {
+      errorMessage = error.message;
+      return;
+    }
+
+    await invalidateAll();
+    closeModals();
+  }
+
+  // --- SUPABASE EDIT TRADER LOGIC ---
+  async function handleEditTrader() {
+    if (!selectedExpert?.id || !supabase) return;
+
+    if (!traderForm.name.trim()) {
+      errorMessage = 'Please provide a trader name.';
+      return;
+    }
+
+    isLoading = true;
+    errorMessage = '';
+
+    const { error } = await supabase
+      .from('experts')
+      .update({
+        name: traderForm.name.trim(),
+        description: traderForm.description.trim(),
+        monthly_returns: traderForm.monthly_returns.trim(),
+        winrate: traderForm.winrate.trim(),
+        followers: Number(traderForm.followers) || 0,
+        trades: Number(traderForm.trades) || 0,
+        copy_price: Number(traderForm.copy_price) || 0
+      })
+      .eq('id', selectedExpert.id);
 
     isLoading = false;
 
@@ -159,7 +212,7 @@
                   </div>
                   <div>
                     <span class="block text-sm font-semibold text-white">{expert.name}</span>
-                    <span class="block text-xs text-gray-400 max-w-xs truncate">{expert.desc}</span>
+                    <span class="block text-xs text-gray-400 max-w-xs truncate">{expert.description ?? expert.desc}</span>
                   </div>
                 </div>
               </td>
@@ -176,12 +229,20 @@
                 ${expert.copy_price}
               </td>
               <td class="px-5 py-4 text-right">
-                <button 
-                  onclick={() => openDeleteModal(expert)}
-                  class="text-xs font-semibold px-3 py-1.5 bg-red-950/50 hover:bg-red-900/60 text-red-400 border border-red-900/50 rounded-lg transition-all"
-                >
-                  Delete
-                </button>
+                <div class="flex items-center justify-end gap-2">
+                  <button 
+                    onclick={() => openEditModal(expert)}
+                    class="text-xs font-semibold px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg transition-all"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onclick={() => openDeleteModal(expert)}
+                    class="text-xs font-semibold px-3 py-1.5 bg-red-950/50 hover:bg-red-900/60 text-red-400 border border-red-900/50 rounded-lg transition-all"
+                  >
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           {/each}
@@ -197,12 +258,14 @@
   </div>
 </div>
 
-<!-- ADD TRADER MODAL -->
-{#if isAddOpen}
+<!-- ADD / EDIT TRADER MODAL -->
+{#if isAddOpen || isEditOpen}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
     <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl">
       <div class="flex items-center justify-between border-b border-gray-800 pb-4">
-        <h3 class="text-lg font-bold text-white">Add Expert Trader</h3>
+        <h3 class="text-lg font-bold text-white">
+          {isEditOpen ? 'Edit Expert Trader' : 'Add Expert Trader'}
+        </h3>
         <button onclick={closeModals} class="text-gray-400 hover:text-white text-sm">✕</button>
       </div>
 
@@ -305,14 +368,14 @@
           Cancel
         </button>
         <button 
-          onclick={handleAddTrader} 
+          onclick={isEditOpen ? handleEditTrader : handleAddTrader} 
           disabled={isLoading}
           class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-blue-950/50 disabled:opacity-50 flex items-center gap-2"
         >
           {#if isLoading}
-            <span>Adding...</span>
+            <span>{isEditOpen ? 'Updating...' : 'Adding...'}</span>
           {:else}
-            <span>Save Trader</span>
+            <span>{isEditOpen ? 'Update Trader' : 'Save Trader'}</span>
           {/if}
         </button>
       </div>
