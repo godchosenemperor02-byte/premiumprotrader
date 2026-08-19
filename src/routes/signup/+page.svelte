@@ -280,13 +280,13 @@
   user.currency = found ? found.currency : '';
 }
 
-  async function handleSignup(e: SubmitEvent) {
+async function handleSignup(e: SubmitEvent) {
     e.preventDefault();
     loading = true;
     errorMsg = "";
     successMsg = "";
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: user.email,
       password: user.password,
       options: {
@@ -306,10 +306,14 @@
     if (error) {
       errorMsg = error.message;
       loading = false;
-    } else {
-      successMsg = "Check your email for the confirmation link.";
+    } else if (data.session) {
+      // User is logged in immediately -> Send to KYC onboarding
       loading = false;
-      goto('/login', { replaceState: true });
+      goto('/dashboard/kyc', { replaceState: true });
+    } else {
+      // Fallback if email confirmation is still enabled in Supabase
+      successMsg = "Check your email for the confirmation link to activate your account.";
+      loading = false;
     }
   }
 </script>
