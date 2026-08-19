@@ -1,161 +1,212 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-</head>
-<body>
- <h1>Bootstrap 5 tutorial</h1>
- <h2>This is an h2</h2>
- <h3>This is an h3</h3>   
- <h1 class="h3">This is an h1 tag with the h3 class</h1>
- <h1 class="h6">This is an h1 tag with the h3 class</h1>
+<script>
+  // Svelte 5 Runes Props & Safe Supabase Access
+  let { data } = $props();
+  let supabase = $derived(data?.supabase);
 
+  // Form State
+  let kycForm = $state({
+    fullName: '',
+    dob: '',
+    idType: 'passport',
+    idNumber: '',
+    address: ''
+  });
 
+  // UI States
+  let isLoading = $state(false);
+  let isSubmitted = $state(false);
+  let errorMessage = $state('');
 
+  async function handleKYCSubmit(e) {
+    e.preventDefault();
 
- <h1 class="display-1">Display 1 heading</h1>
- <h1 class="display-6">Display 2 heading</h1>
-    <p class="display-1">Display 1 paragragh</p>
+    if (!kycForm.fullName.trim() || !kycForm.idNumber.trim()) {
+      errorMessage = 'Please complete all required fields.';
+      return;
+    }
 
+    isLoading = true;
+    errorMessage = '';
 
+    // If Supabase is connected, store the record
+    if (supabase) {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
 
-<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur laudantium ea, aliquam possimus minima ut blanditiis magnam praesentium quia, dolorum, repellendus illum cum ullam. Commodi id aliquid consequuntur nam nisi.</p>
-<p class="lead">Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequuntur laudantium ea, aliquam possimus minima ut blanditiis magnam praesentium quia, dolorum, repellendus illum cum ullam. Commodi id aliquid consequuntur nam nisi.</p>
-<p class="lead text-center">Hello Ninjas</p>
-<p class="lead text-end">Hello Ninjas</p>
-<p class="lead text-start">Hello Ninjas</p>
+      if (userId) {
+        const { error } = await supabase
+          .from('kyc_verifications')
+          .upsert([
+            {
+              user_id: userId,
+              full_name: kycForm.fullName.trim(),
+              dob: kycForm.dob,
+              id_type: kycForm.idType,
+              id_number: kycForm.idNumber.trim(),
+              address: kycForm.address.trim(),
+              status: 'pending'
+            }
+          ]);
 
+        if (error) {
+          errorMessage = error.message;
+          isLoading = false;
+          return;
+        }
+      }
+    }
 
-<p class="text-decoration-underline">This is underlined text</p>
-<p class="text-decoration-line-through">This is line through text</p>
-<p class="fw-bold">This is a bold text</p>
+    // Simulate delay if offline/mocked
+    setTimeout(() => {
+      isLoading = false;
+      isSubmitted = true;
+    }, 1000);
+  }
 
+  function resetForm() {
+    kycForm = {
+      fullName: '',
+      dob: '',
+      idType: 'passport',
+      idNumber: '',
+      address: ''
+    };
+    isSubmitted = false;
+    errorMessage = '';
+  }
+</script>
 
-<p class="text-dark">Theme primary color</p>
+<div class="max-w-2xl mx-auto space-y-8">
+  <!-- Header -->
+  <div class="flex flex-col gap-1">
+    <h2 class="text-2xl font-bold tracking-tight text-white">Identity Verification (KYC)</h2>
+    <p class="text-sm text-gray-400">Complete identity verification to unlock full trading access and limits.</p>
+  </div>
 
+  {#if isSubmitted}
+    <!-- SUCCESS MESSAGE VIEW -->
+    <div class="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-8 text-center space-y-5 backdrop-blur-sm shadow-xl">
+      <div class="w-16 h-16 rounded-full bg-emerald-900/50 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+        </svg>
+      </div>
 
-<p class="text-white bg-warning">Text color on primary back ground</p>
+      <div class="space-y-2">
+        <h3 class="text-xl font-bold text-white">Verification Submitted!</h3>
+        <p class="text-sm text-gray-300 max-w-md mx-auto leading-relaxed">
+          Your KYC details have been successfully received and are under review. Our team will verify your information shortly.
+        </p>
+      </div>
 
-<button class="btn btn-secondary">Primary button</button>
-<a href="#" class="btn btn-info">Info anchor tag</a>
-
-<button class="btn btn-sm btn-danger">This is a small red button</button>
-
-<button class="btn btn-outline-danger">Outlined Primary</button>
-<button class="btn btn-outline-danger btn-lg">Outlined Primary large</button>
-<h1>Button groups</h1>
-<div class="btn-group">
-    <a href="#" class="btn btn-primary">Button 1</a>
-    <a href="#" class="btn btn-secondary">Button 2</a>
-    <a href="#" class="btn btn-danger">Button 3</a>
-    <a href="#" class="btn btn-warning">Button 4</a>
-</div>
-
-
-<h1>Margin and Padding</h1>
-<div class="bg-primary m-1 p-1">Small margin and padding</div>
-<div class="bg-primary m-5 p-5">large margin and padding</div>
-<div class="bg-primary my-1 mx-1 px-1 py-1">Margin/Padding top and bottom</div>
-<div class="bg-primary my-5 mx-5 px-5 py-5">Large Margin/Padding top and bottom</div>
-<div class="bg-primary ms-1 me-1 ps-1 pe-1">Margin/Padding left and right</div>
-<div class="bg-primary ms-5 me-5 ps-5 pe-5">Margin/Padding left and right</div>
-
-<div class="container my-5">
-    <h1>normal container</h1>
-    <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Vitae ducimus 
-        repellendus mollitia. Dolores necessitatibus accusa
-        ntium hic delectus! Quo cum, at delectus commodi, odio, vitae magni enim officia similique nisi beatae.
-    </p>
-</div>
-
-
-
-<div class="container-fluid">
-    <h1>fluid container</h1>
-    <p>
-        Lorem ipsum 
-        dolor sit amet consectetur adipisicing elit. Dolore tempore odio ipsa nisi, amet ullam facilis harum 
-        nobis neque magnam est maiores corporis modi perferendis iste libero quidem quo cumque!
-    </p>
-</div>
-<div class="container-lg my-5">
-    <h1>100% width until lg screens, then container</h1>
-    <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Nam in ipsa nihil, nostrum inventore provident accusantium. Ipsam accusamus esse beatae, aliquid, exercitationem et 
-        temporibus, tempora earum natus ullam sint nesciunt.
-    </p>
-</div>
-<div class="container-xl my-5">
-    <h1>100% width until xl screens, then container</h1>
-    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Commodi excepturi iste doloribus, quibusdam a, ut similique, dolores modi minus temporibus quia nisi quae tempora 
-        odio. Quod repudiandae quia obcaecati voluptatum?</p>
-</div>
-<div class="container-lg my-5">
-    <h1>Basic grid</h1>
-    <div class="row">
-        <div class="col">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
-         <div class="col">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
-     <div class="col">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
-         <div class="col">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
- 
- 
+      <div class="pt-2">
+        <button 
+          onclick={resetForm}
+          class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-xl text-xs font-semibold transition-all"
+        >
+          Submit Another Document
+        </button>
+      </div>
     </div>
+  {:else}
+    <!-- FORM VIEW -->
+    <form onsubmit={handleKYCSubmit} class="rounded-2xl border border-gray-800 bg-gray-900/60 p-6 sm:p-8 space-y-6 shadow-xl">
+      {#if errorMessage}
+        <div class="p-3.5 bg-red-950/80 border border-red-900/50 text-red-400 text-xs rounded-xl">
+          {errorMessage}
+        </div>
+      {/if}
+
+      <div class="space-y-4">
+        <!-- Full Name -->
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1.5" for="full-name">Legal Full Name *</label>
+          <input 
+            id="full-name"
+            type="text" 
+            placeholder="e.g. John Alexander Doe"
+            bind:value={kycForm.fullName} 
+            disabled={isLoading}
+            required
+            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Date of Birth -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5" for="dob">Date of Birth *</label>
+            <input 
+              id="dob"
+              type="date" 
+              bind:value={kycForm.dob} 
+              disabled={isLoading}
+              required
+              class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+            />
+          </div>
+
+          <!-- Document Type -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5" for="id-type">ID Type *</label>
+            <select
+              id="id-type"
+              bind:value={kycForm.idType}
+              disabled={isLoading}
+              class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+            >
+              <option value="passport">International Passport</option>
+              <option value="national_id">National Identity Card</option>
+              <option value="drivers_license">Driver's License</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ID Number -->
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1.5" for="id-number">Document / ID Number *</label>
+          <input 
+            id="id-number"
+            type="text" 
+            placeholder="e.g. A12345678"
+            bind:value={kycForm.idNumber} 
+            disabled={isLoading}
+            required
+            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+          />
+        </div>
+
+        <!-- Address -->
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1.5" for="address">Residential Address</label>
+          <textarea 
+            id="address"
+            rows="3"
+            placeholder="Street address, City, State/Province, Country"
+            bind:value={kycForm.address} 
+            disabled={isLoading}
+            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50 resize-none"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="pt-2 border-t border-gray-800 flex justify-end">
+        <button 
+          type="submit"
+          disabled={isLoading}
+          class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-blue-950/50 disabled:opacity-50 flex items-center gap-2"
+        >
+          {#if isLoading}
+            <span>Submitting Details...</span>
+          {:else}
+            <span>Submit Verification</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          {/if}
+        </button>
+      </div>
+    </form>
+  {/if}
 </div>
-<div class="container-lg my-5">
-    <h1>column widths</h1>
-     <div class="row">
-        <div class="col-6">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
-         <div class="col-3">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
-     <div class="col-3">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
- 
- 
-    </div>
-
-</div>
-<div class="container-lg my-5">
-    <h1>responsive widths</h1>
-    <div class="row">
-        <div class="col-sm-4 col-lg-6">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
-         <div class="col-sm-4 col-lg-3">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
-     <div class="col-sm-4 col-lg-3">
-            <div class="p-5 bg-danger text-light">col</div>
-        </div>
-    </div>
-</div>
-<div class="container-lg my-5">
-    <h1>justifying columns</h1>
-</div>
-
-
-
-
-
-
-
-
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-</body>
-</html>
