@@ -42,7 +42,7 @@
 
       // Update the kyc status in the profile table to true
       const { error } = await supabase
-        .from('profile')
+        .from('profiles')
         .update({ kyc: true })
         .eq('id', userId); 
 
