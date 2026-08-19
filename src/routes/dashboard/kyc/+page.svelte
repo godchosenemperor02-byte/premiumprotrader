@@ -16,6 +16,7 @@
   let isLoading = $state(false);
   let isSubmitted = $state(false);
   let errorMessage = $state('');
+  let successMessage = $state('');
 
   async function handleKYCSubmit(e) {
     e.preventDefault();
@@ -27,40 +28,39 @@
 
     isLoading = true;
     errorMessage = '';
+    successMessage = '';
 
-    // If Supabase is connected, store the record
     if (supabase) {
-      const { data: userData } = await supabase.auth.getUser();
+      const { data: userData, error: authError } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
 
-      if (userId) {
-        const { error } = await supabase
-          .from('kyc_verifications')
-          .upsert([
-            {
-              user_id: userId,
-              full_name: kycForm.fullName.trim(),
-              dob: kycForm.dob,
-              id_type: kycForm.idType,
-              id_number: kycForm.idNumber.trim(),
-              address: kycForm.address.trim(),
-              status: 'pending'
-            }
-          ]);
-
-        if (error) {
-          errorMessage = error.message;
-          isLoading = false;
-          return;
-        }
+      if (authError || !userId) {
+        errorMessage = 'Unable to verify user session.';
+        isLoading = false;
+        return;
       }
-    }
 
-    // Simulate delay if offline/mocked
-    setTimeout(() => {
-      isLoading = false;
+      // Update the kyc status in the profile table to true
+      const { error } = await supabase
+        .from('profile')
+        .update({ kyc: true })
+        .eq('id', userId); 
+
+      if (error) {
+        errorMessage = error.message;
+        isLoading = false;
+        return;
+      }
+
+      // Trigger success states
+      successMessage = 'KYC successfully verified!';
       isSubmitted = true;
-    }, 1000);
+      isLoading = false;
+      
+    } else {
+      errorMessage = 'Database connection missing.';
+      isLoading = false;
+    }
   }
 
   function resetForm() {
@@ -73,8 +73,16 @@
     };
     isSubmitted = false;
     errorMessage = '';
+    successMessage = '';
   }
 </script>
+
+<!-- Example Success Message Rendering -->
+{#if successMessage}
+  <div class="success-alert">
+    {successMessage}
+  </div>
+{/if}
 
 <div class="max-w-2xl mx-auto space-y-8">
   <!-- Header -->
