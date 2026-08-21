@@ -5,14 +5,14 @@
 
   // Form State
   let kycForm = $state({
-  fullName: '',
-  dob: '',
-  idType: 'passport',
-  idNumber: '',
-  address: '',
-  idFront: null,
-  idBack: null
-});
+    fullName: '',
+    dob: '',
+    idType: 'passport',
+    idNumber: '',
+    address: '',
+    idFront: null,
+    idBack: null
+  });
 
   // UI States
   let isLoading = $state(false);
@@ -22,7 +22,7 @@
   let errorMessage = $state('');
   let successMessage = $state('');
 
-  // Fetch initial KYC state from user profile
+  // Check existing KYC status
   $effect(() => {
     async function checkKycStatus() {
       if (!supabase) {
@@ -30,7 +30,14 @@
         return;
       }
 
-      const { data: userData } = await supabase.auth.getUser();
+      const { data: userData, error: authError } =
+        await supabase.auth.getUser();
+
+      if (authError) {
+        isCheckingKyc = false;
+        return;
+      }
+
       const userId = userData?.user?.id;
 
       if (userId) {
@@ -51,243 +58,277 @@
     checkKycStatus();
   });
 
-function validateImage(file) {
-  if (!file) return 'Please select an image.';
-
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp'
-  ];
-
-  if (!allowedTypes.includes(file.type)) {
-    return 'Please upload a JPG, PNG, or WebP image.';
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    return 'Each image must be smaller than 5MB.';
-  }
-
-  return null;
-}
-function handleIdFrontChange(e) {
-  const frontExtension =
-  kycForm.idFront.name.split('.').pop()?.toLowerCase() || 'jpg';
-
-const frontPath =
-  `${userId}/front-${crypto.randomUUID()}.${frontExtension}`;
-
-const {
-  data: frontUpload,
-  error: frontUploadError
-} = await supabase.storage
-  .from('kyc-documents')
-  .upload(
-    frontPath,
-    kycForm.idFront,
-    {
-      cacheControl: '3600',
-      contentType: kycForm.idFront.type,
-      upsert: false
+  // Validate uploaded image
+  function validateImage(file) {
+    if (!file) {
+      return 'Please select an image.';
     }
-  );
 
-if (frontUploadError) {
-  console.error('KYC FRONT UPLOAD ERROR:', frontUploadError);
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
 
-  throw new Error(
-    `ID upload failed: ${frontUploadError.message}`
-  );
-}
+    if (!allowedTypes.includes(file.type)) {
+      return 'Please upload a JPG, PNG, or WebP image.';
+    }
 
-console.log('Front uploaded:', frontUpload);
-}
+    if (file.size > 5 * 1024 * 1024) {
+      return 'Each image must be smaller than 5MB.';
+    }
 
-function handleIdBackChange(e) {
-  const file = e.target.files?.[0];
-
-  const error = validateImage(file);
-
-  if (error) {
-    errorMessage = error;
-    return;
+    return null;
   }
 
-  kycForm.idBack = file;
-  errorMessage = '';
-}
+  // Front ID file selection
+  function handleIdFrontChange(e) {
+    const file = e.target.files?.[0];
 
-async function handleKYCSubmit(e) {
-  e.preventDefault();
+    const error = validateImage(file);
 
-  errorMessage = '';
-  successMessage = '';
-
-  if (
-    !kycForm.fullName.trim() ||
-    !kycForm.dob ||
-    !kycForm.idNumber.trim() ||
-    !kycForm.idFront
-  ) {
-    errorMessage = 'Please complete all required fields and upload your ID.';
-    return;
-  }
-
-  const frontError = validateImage(kycForm.idFront);
-
-  if (frontError) {
-    errorMessage = frontError;
-    return;
-  }
-
-  if (kycForm.idBack) {
-    const backError = validateImage(kycForm.idBack);
-
-    if (backError) {
-      errorMessage = backError;
+    if (error) {
+      errorMessage = error;
+      kycForm.idFront = null;
       return;
     }
+
+    kycForm.idFront = file;
+    errorMessage = '';
   }
 
-  isLoading = true;
+  // Back ID file selection
+  function handleIdBackChange(e) {
+    const file = e.target.files?.[0];
 
-  try {
-    const { data: userData, error: authError } =
-      await supabase.auth.getUser();
-
-    const userId = userData?.user?.id;
-
-    if (authError || !userId) {
-      throw new Error('Unable to verify user session.');
+    if (!file) {
+      kycForm.idBack = null;
+      return;
     }
 
-    /*
-     * 1. Upload front image
-     */
+    const error = validateImage(file);
 
-    const frontExtension =
-      kycForm.idFront.name.split('.').pop()?.toLowerCase() || 'jpg';
-
-    const frontPath =
-      `${userId}/front-${crypto.randomUUID()}.${frontExtension}`;
-
-    const { error: frontUploadError } =
-      await supabase.storage
-        .from('kyc-documents')
-        .upload(frontPath, kycForm.idFront, {
-          contentType: kycForm.idFront.type,
-          upsert: false
-        });
-
-    if (frontUploadError) {
-      throw new Error(
-        `Failed to upload ID front: ${frontUploadError.message}`
-      );
+    if (error) {
+      errorMessage = error;
+      kycForm.idBack = null;
+      return;
     }
 
-    /*
-     * 2. Upload back image if provided
-     */
+    kycForm.idBack = file;
+    errorMessage = '';
+  }
 
-    let backPath = null;
+  // Submit KYC
+  async function handleKYCSubmit(e) {
+    e.preventDefault();
 
+    errorMessage = '';
+    successMessage = '';
+
+    // Validate required fields
+    if (
+      !kycForm.fullName.trim() ||
+      !kycForm.dob ||
+      !kycForm.idNumber.trim() ||
+      !kycForm.idFront
+    ) {
+      errorMessage =
+        'Please complete all required fields and upload the front of your ID.';
+      return;
+    }
+
+    // Validate front image
+    const frontError = validateImage(kycForm.idFront);
+
+    if (frontError) {
+      errorMessage = frontError;
+      return;
+    }
+
+    // Validate back image if provided
     if (kycForm.idBack) {
-      const backExtension =
-        kycForm.idBack.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const backError = validateImage(kycForm.idBack);
 
-      backPath =
-        `${userId}/back-${crypto.randomUUID()}.${backExtension}`;
+      if (backError) {
+        errorMessage = backError;
+        return;
+      }
+    }
 
-      const { error: backUploadError } =
-        await supabase.storage
-          .from('kyc-documents')
-          .upload(backPath, kycForm.idBack, {
-            contentType: kycForm.idBack.type,
+    if (!supabase) {
+      errorMessage = 'Database connection missing.';
+      return;
+    }
+
+    isLoading = true;
+
+    try {
+      // Get authenticated user
+      const {
+        data: userData,
+        error: authError
+      } = await supabase.auth.getUser();
+
+      const userId = userData?.user?.id;
+
+      if (authError || !userId) {
+        throw new Error('Unable to verify user session.');
+      }
+
+      // --------------------------------
+      // Upload front ID
+      // --------------------------------
+
+      const frontExtension =
+        kycForm.idFront.name
+          .split('.')
+          .pop()
+          ?.toLowerCase() || 'jpg';
+
+      const frontPath =
+        `${userId}/front-${crypto.randomUUID()}.${frontExtension}`;
+
+      const frontUploadResult = await supabase.storage
+        .from('kyc-documents')
+        .upload(
+          frontPath,
+          kycForm.idFront,
+          {
+            cacheControl: '3600',
+            contentType: kycForm.idFront.type,
             upsert: false
-          });
+          }
+        );
 
-      if (backUploadError) {
-        // Clean up front upload if back upload fails
-        await supabase.storage
-          .from('kyc-documents')
-          .remove([frontPath]);
+      if (frontUploadResult.error) {
+        console.error(
+          'KYC FRONT UPLOAD ERROR:',
+          frontUploadResult.error
+        );
 
         throw new Error(
-          `Failed to upload ID back: ${backUploadError.message}`
+          `Failed to upload ID front: ${frontUploadResult.error.message}`
         );
       }
-    }
 
-    /*
-     * 3. Store KYC information
-     */
+      // --------------------------------
+      // Upload back ID
+      // --------------------------------
 
-    const { error: kycError } = await supabase
-      .from('kyc_verifications')
-      .insert({
-        user_id: userId,
-        full_name: kycForm.fullName.trim(),
-        date_of_birth: kycForm.dob,
-        id_type: kycForm.idType,
-        id_number: kycForm.idNumber.trim(),
-        residential_address: kycForm.address.trim() || null,
-        id_front_path: frontPath,
-        id_back_path: backPath,
-        status: 'pending'
-      });
+      let backPath = null;
 
-    if (kycError) {
-      // Clean up uploaded files if database insert fails
-      const filesToRemove = [frontPath];
+      if (kycForm.idBack) {
+        const backExtension =
+          kycForm.idBack.name
+            .split('.')
+            .pop()
+            ?.toLowerCase() || 'jpg';
 
-      if (backPath) {
-        filesToRemove.push(backPath);
+        backPath =
+          `${userId}/back-${crypto.randomUUID()}.${backExtension}`;
+
+        const backUploadResult = await supabase.storage
+          .from('kyc-documents')
+          .upload(
+            backPath,
+            kycForm.idBack,
+            {
+              cacheControl: '3600',
+              contentType: kycForm.idBack.type,
+              upsert: false
+            }
+          );
+
+        if (backUploadResult.error) {
+          console.error(
+            'KYC BACK UPLOAD ERROR:',
+            backUploadResult.error
+          );
+
+          // Remove front image if back upload fails
+          await supabase.storage
+            .from('kyc-documents')
+            .remove([frontPath]);
+
+          throw new Error(
+            `Failed to upload ID back: ${backUploadResult.error.message}`
+          );
+        }
       }
 
-      await supabase.storage
-        .from('kyc-documents')
-        .remove(filesToRemove);
+      // --------------------------------
+      // Save KYC details
+      // --------------------------------
 
-      throw new Error(
-        `Failed to save KYC details: ${kycError.message}`
-      );
+      const { error: kycError } = await supabase
+        .from('kyc_verifications')
+        .insert({
+          user_id: userId,
+          full_name: kycForm.fullName.trim(),
+          date_of_birth: kycForm.dob,
+          id_type: kycForm.idType,
+          id_number: kycForm.idNumber.trim(),
+          residential_address:
+            kycForm.address.trim() || null,
+          id_front_path: frontPath,
+          id_back_path: backPath,
+          status: 'pending'
+        });
+
+      if (kycError) {
+        // Remove uploaded files if database insert fails
+        const filesToRemove = [frontPath];
+
+        if (backPath) {
+          filesToRemove.push(backPath);
+        }
+
+        await supabase.storage
+          .from('kyc-documents')
+          .remove(filesToRemove);
+
+        throw new Error(
+          `Failed to save KYC details: ${kycError.message}`
+        );
+      }
+
+      // --------------------------------
+      // Success
+      // --------------------------------
+
+      successMessage =
+        'KYC documents submitted successfully. Your verification is pending review.';
+
+      isSubmitted = true;
+
+    } catch (error) {
+      console.error('KYC SUBMISSION ERROR:', error);
+
+      errorMessage =
+        error?.message ||
+        'Something went wrong while submitting your KYC.';
+    } finally {
+      isLoading = false;
     }
-
-    /*
-     * 4. Success
-     *
-     * Notice that we DO NOT set profiles.kyc = true here.
-     * The KYC is only submitted and is still pending review.
-     */
-
-    successMessage =
-      'KYC documents submitted successfully. Your verification is pending review.';
-
-    isSubmitted = true;
-
-  } catch (error) {
-    errorMessage =
-      error?.message || 'Something went wrong while submitting your KYC.';
-  } finally {
-    isLoading = false;
   }
-}
 
+  // Reset form
   function resetForm() {
     kycForm = {
       fullName: '',
       dob: '',
       idType: 'passport',
       idNumber: '',
-      address: ''
+      address: '',
+      idFront: null,
+      idBack: null
     };
+
     isSubmitted = false;
     errorMessage = '';
     successMessage = '';
   }
-</script>
-
-<!-- Top Alert Message -->
+</script><!-- Top Alert Message -->
 {#if successMessage}
   <div class="mb-6 p-4 bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 text-xs rounded-xl max-w-2xl mx-auto flex items-center justify-between">
     <span>{successMessage}</span>
