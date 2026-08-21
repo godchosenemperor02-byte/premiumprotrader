@@ -5,12 +5,14 @@
 
   // Form State
   let kycForm = $state({
-    fullName: '',
-    dob: '',
-    idType: 'passport',
-    idNumber: '',
-    address: ''
-  });
+  fullName: '',
+  dob: '',
+  idType: 'passport',
+  idNumber: '',
+  address: '',
+  idFront: null,
+  idBack: null
+});
 
   // UI States
   let isLoading = $state(false);
@@ -49,6 +51,52 @@
     checkKycStatus();
   });
 
+function validateImage(file) {
+  if (!file) return 'Please select an image.';
+
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp'
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    return 'Please upload a JPG, PNG, or WebP image.';
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    return 'Each image must be smaller than 5MB.';
+  }
+
+  return null;
+}
+function handleIdFrontChange(e) {
+  const file = e.target.files?.[0];
+
+  const error = validateImage(file);
+
+  if (error) {
+    errorMessage = error;
+    return;
+  }
+
+  kycForm.idFront = file;
+  errorMessage = '';
+}
+
+function handleIdBackChange(e) {
+  const file = e.target.files?.[0];
+
+  const error = validateImage(file);
+
+  if (error) {
+    errorMessage = error;
+    return;
+  }
+
+  kycForm.idBack = file;
+  errorMessage = '';
+}
   async function handleKYCSubmit(e) {
     e.preventDefault();
 
@@ -94,6 +142,162 @@
       isLoading = false;
     }
   }
+
+async function handleKYCSubmit(e) {
+  e.preventDefault();
+
+  errorMessage = '';
+  successMessage = '';
+
+  if (
+    !kycForm.fullName.trim() ||
+    !kycForm.dob ||
+    !kycForm.idNumber.trim() ||
+    !kycForm.idFront
+  ) {
+    errorMessage = 'Please complete all required fields and upload your ID.';
+    return;
+  }
+
+  const frontError = validateImage(kycForm.idFront);
+
+  if (frontError) {
+    errorMessage = frontError;
+    return;
+  }
+
+  if (kycForm.idBack) {
+    const backError = validateImage(kycForm.idBack);
+
+    if (backError) {
+      errorMessage = backError;
+      return;
+    }
+  }
+
+  isLoading = true;
+
+  try {
+    const { data: userData, error: authError } =
+      await supabase.auth.getUser();
+
+    const userId = userData?.user?.id;
+
+    if (authError || !userId) {
+      throw new Error('Unable to verify user session.');
+    }
+
+    /*
+     * 1. Upload front image
+     */
+
+    const frontExtension =
+      kycForm.idFront.name.split('.').pop()?.toLowerCase() || 'jpg';
+
+    const frontPath =
+      `${userId}/front-${crypto.randomUUID()}.${frontExtension}`;
+
+    const { error: frontUploadError } =
+      await supabase.storage
+        .from('kyc-documents')
+        .upload(frontPath, kycForm.idFront, {
+          contentType: kycForm.idFront.type,
+          upsert: false
+        });
+
+    if (frontUploadError) {
+      throw new Error(
+        `Failed to upload ID front: ${frontUploadError.message}`
+      );
+    }
+
+    /*
+     * 2. Upload back image if provided
+     */
+
+    let backPath = null;
+
+    if (kycForm.idBack) {
+      const backExtension =
+        kycForm.idBack.name.split('.').pop()?.toLowerCase() || 'jpg';
+
+      backPath =
+        `${userId}/back-${crypto.randomUUID()}.${backExtension}`;
+
+      const { error: backUploadError } =
+        await supabase.storage
+          .from('kyc-documents')
+          .upload(backPath, kycForm.idBack, {
+            contentType: kycForm.idBack.type,
+            upsert: false
+          });
+
+      if (backUploadError) {
+        // Clean up front upload if back upload fails
+        await supabase.storage
+          .from('kyc-documents')
+          .remove([frontPath]);
+
+        throw new Error(
+          `Failed to upload ID back: ${backUploadError.message}`
+        );
+      }
+    }
+
+    /*
+     * 3. Store KYC information
+     */
+
+    const { error: kycError } = await supabase
+      .from('kyc_verifications')
+      .insert({
+        user_id: userId,
+        full_name: kycForm.fullName.trim(),
+        date_of_birth: kycForm.dob,
+        id_type: kycForm.idType,
+        id_number: kycForm.idNumber.trim(),
+        residential_address: kycForm.address.trim() || null,
+        id_front_path: frontPath,
+        id_back_path: backPath,
+        status: 'pending'
+      });
+
+    if (kycError) {
+      // Clean up uploaded files if database insert fails
+      const filesToRemove = [frontPath];
+
+      if (backPath) {
+        filesToRemove.push(backPath);
+      }
+
+      await supabase.storage
+        .from('kyc-documents')
+        .remove(filesToRemove);
+
+      throw new Error(
+        `Failed to save KYC details: ${kycError.message}`
+      );
+    }
+
+    /*
+     * 4. Success
+     *
+     * Notice that we DO NOT set profiles.kyc = true here.
+     * The KYC is only submitted and is still pending review.
+     */
+
+    successMessage =
+      'KYC documents submitted successfully. Your verification is pending review.';
+
+    isSubmitted = true;
+
+  } catch (error) {
+    errorMessage =
+      error?.message || 'Something went wrong while submitting your KYC.';
+  } finally {
+    isLoading = false;
+  }
+}
 
   function resetForm() {
     kycForm = {
@@ -223,19 +427,76 @@
         </div>
 
         <!-- ID Number -->
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1.5" for="id-number">Document / ID Number *</label>
-          <input 
-            id="id-number"
-            type="text" 
-            placeholder="e.g. A12345678"
-            bind:value={kycForm.idNumber} 
-            disabled={isLoading}
-            required
-            class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-          />
-        </div>
+        <!-- ID Number -->
+<div>
+  <label
+    class="block text-xs font-medium text-gray-400 mb-1.5"
+    for="id-number"
+  >
+    Document / ID Number *
+  </label>
 
+  <input 
+    id="id-number"
+    type="text" 
+    placeholder="e.g. A12345678"
+    bind:value={kycForm.idNumber} 
+    disabled={isLoading}
+    required
+    class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+  />
+</div>
+
+<!-- ID Front -->
+<div>
+  <label
+    class="block text-xs font-medium text-gray-400 mb-1.5"
+    for="id-front"
+  >
+    ID Document — Front *
+  </label>
+
+  <input
+    id="id-front"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    onchange={handleIdFrontChange}
+    disabled={isLoading}
+    required
+    class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-3 text-sm text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-blue-500 disabled:opacity-50"
+  />
+
+  {#if kycForm.idFront}
+    <p class="mt-2 text-xs text-emerald-400">
+      ✓ {kycForm.idFront.name}
+    </p>
+  {/if}
+</div>
+
+<!-- ID Back -->
+<div>
+  <label
+    class="block text-xs font-medium text-gray-400 mb-1.5"
+    for="id-back"
+  >
+    ID Document — Back
+  </label>
+
+  <input
+    id="id-back"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    onchange={handleIdBackChange}
+    disabled={isLoading}
+    class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-3 text-sm text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-blue-500 disabled:opacity-50"
+  />
+
+  {#if kycForm.idBack}
+    <p class="mt-2 text-xs text-emerald-400">
+      ✓ {kycForm.idBack.name}
+    </p>
+  {/if}
+</div>
         <!-- Address -->
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1.5" for="address">Residential Address</label>
