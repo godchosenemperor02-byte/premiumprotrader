@@ -16,44 +16,52 @@
   let errorMessage = $state('');
 
   // Initial Form State for Traders
-  let traderForm = $state({
+let traderForm = $state({
+  name: '',
+  description: '',
+  monthly_returns: '+0.0%',
+  winrate: '0%',
+  followers: 0,
+  trades: 0,
+  copy_price: 0,
+  image: null,
+  image_url: ''
+});
+
+function openAddModal() {
+  traderForm = {
     name: '',
     description: '',
-    monthly_returns: '+0.0%',
-    winrate: '0%',
-    followers: 0,
-    trades: 0,
-    copy_price: 0
-  });
+    monthly_returns: '+15.4%',
+    winrate: '85%',
+    followers: 120,
+    trades: 45,
+    copy_price: 50,
+    image: null,
+    image_url: ''
+  };
 
-  function openAddModal() {
-    traderForm = {
-      name: '',
-      description: '',
-      monthly_returns: '+15.4%',
-      winrate: '85%',
-      followers: 120,
-      trades: 45,
-      copy_price: 50
-    };
-    errorMessage = '';
-    isAddOpen = true;
-  }
+  errorMessage = '';
+  isAddOpen = true;
+}
+ function openEditModal(expert) {
+  selectedExpert = expert;
 
-  function openEditModal(expert) {
-    selectedExpert = expert;
-    traderForm = {
-      name: expert.name ?? '',
-      description: expert.description ?? expert.desc ?? '',
-      monthly_returns: expert.monthly_returns ?? '+0.0%',
-      winrate: expert.winrate ?? '0%',
-      followers: expert.followers ?? 0,
-      trades: expert.trades ?? 0,
-      copy_price: expert.copy_price ?? 0
-    };
-    errorMessage = '';
-    isEditOpen = true;
-  }
+  traderForm = {
+    name: expert.name ?? '',
+    description: expert.description ?? expert.desc ?? '',
+    monthly_returns: expert.monthly_returns ?? '+0.0%',
+    winrate: expert.winrate ?? '0%',
+    followers: expert.followers ?? 0,
+    trades: expert.trades ?? 0,
+    copy_price: expert.copy_price ?? 0,
+    image: null,
+    image_url: expert.image_url ?? ''
+  };
+
+  errorMessage = '';
+  isEditOpen = true;
+}
 
   function openDeleteModal(expert) {
     selectedExpert = expert;
@@ -70,18 +78,54 @@
     isLoading = false;
   }
 
+    async function uploadTraderImage(file) {
+  if (!file || !supabase) return null;
+
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+
+  const fileName = `${crypto.randomUUID()}.${extension}`;
+
+  const filePath = `traders/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('expert-images')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type
+    });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage
+    .from('expert-images')
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+}
   // --- SUPABASE ADD TRADER LOGIC ---
   async function handleAddTrader() {
-    if (!supabase) return;
+  if (!supabase) return;
 
-    if (!traderForm.name.trim()) {
-      errorMessage = 'Please provide a trader name.';
-      return;
+  if (!traderForm.name.trim()) {
+    errorMessage = 'Please provide a trader name.';
+    return;
+  }
+
+  isLoading = true;
+  errorMessage = '';
+
+  try {
+    let imageUrl = null;
+
+    // Upload image first
+    if (traderForm.image) {
+      imageUrl = await uploadTraderImage(traderForm.image);
     }
 
-    isLoading = true;
-    errorMessage = '';
-
+    // Then create trader
     const { error } = await supabase
       .from('experts')
       .insert([
@@ -92,32 +136,43 @@
           winrate: traderForm.winrate.trim(),
           followers: Number(traderForm.followers) || 0,
           trades: Number(traderForm.trades) || 0,
-          copy_price: Number(traderForm.copy_price) || 0
+          copy_price: Number(traderForm.copy_price) || 0,
+          image_url: imageUrl
         }
       ]);
 
-    isLoading = false;
-
     if (error) {
-      errorMessage = error.message;
-      return;
+      throw error;
     }
 
     await invalidateAll();
     closeModals();
-  }
 
+  } catch (error) {
+    errorMessage = error.message;
+  } finally {
+    isLoading = false;
+  }
+}
   // --- SUPABASE EDIT TRADER LOGIC ---
   async function handleEditTrader() {
-    if (!selectedExpert?.id || !supabase) return;
+  if (!selectedExpert?.id || !supabase) return;
 
-    if (!traderForm.name.trim()) {
-      errorMessage = 'Please provide a trader name.';
-      return;
+  if (!traderForm.name.trim()) {
+    errorMessage = 'Please provide a trader name.';
+    return;
+  }
+
+  isLoading = true;
+  errorMessage = '';
+
+  try {
+    let imageUrl = traderForm.image_url;
+
+    // Only upload if a new image was selected
+    if (traderForm.image) {
+      imageUrl = await uploadTraderImage(traderForm.image);
     }
-
-    isLoading = true;
-    errorMessage = '';
 
     const { error } = await supabase
       .from('experts')
@@ -128,21 +183,24 @@
         winrate: traderForm.winrate.trim(),
         followers: Number(traderForm.followers) || 0,
         trades: Number(traderForm.trades) || 0,
-        copy_price: Number(traderForm.copy_price) || 0
+        copy_price: Number(traderForm.copy_price) || 0,
+        image_url: imageUrl
       })
       .eq('id', selectedExpert.id);
 
-    isLoading = false;
-
     if (error) {
-      errorMessage = error.message;
-      return;
+      throw error;
     }
 
     await invalidateAll();
     closeModals();
-  }
 
+  } catch (error) {
+    errorMessage = error.message;
+  } finally {
+    isLoading = false;
+  }
+}
   // --- SUPABASE DELETE TRADER LOGIC ---
   async function handleDeleteTrader() {
     if (!selectedExpert?.id || !supabase) return;
@@ -189,73 +247,317 @@
   </div>
 
   <!-- Experts Table -->
-  <div class="overflow-x-auto rounded-2xl border border-gray-800 bg-gray-900/60">
-    <table class="w-full text-left border-collapse text-sm">
+  <div class="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/70 shadow-xl shadow-black/10">
+
+  <!-- Desktop / Tablet Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full min-w-[720px] text-left border-collapse">
       <thead>
-        <tr class="bg-gray-900 border-b border-gray-800 text-gray-400 font-semibold text-xs tracking-wider uppercase">
-          <th class="px-5 py-3.5">Trader</th>
-          <th class="px-5 py-3.5">Monthly Return</th>
-          <th class="px-5 py-3.5 hidden md:table-cell">Win Rate</th>
-          <th class="px-5 py-3.5 hidden md:table-cell">Followers</th>
-          <th class="px-5 py-3.5">Copy Price</th>
-          <th class="px-5 py-3.5 text-right">Actions</th>
+        <tr class="border-b border-gray-800 bg-gray-900/80">
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+            Trader
+          </th>
+
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+            Return
+          </th>
+
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-gray-500 hidden sm:table-cell">
+            Win Rate
+          </th>
+
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-gray-500 hidden lg:table-cell">
+            Followers
+          </th>
+
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+            Price
+          </th>
+
+          <th class="px-5 py-4 text-right text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+            Actions
+          </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-800/60 text-gray-300 font-medium">
+
+      <tbody class="divide-y divide-gray-800/70">
         {#if Array.isArray(data?.experts) && data.experts.length > 0}
+
           {#each data.experts as expert}
-            <tr class="hover:bg-gray-850/40 transition-colors">
+            <tr class="group transition-colors hover:bg-gray-800/30">
+
+              <!-- Trader -->
               <td class="px-5 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-gray-800 border border-blue-500/30 overflow-hidden flex items-center justify-center text-gray-300 font-bold text-xs shrink-0">
-                    <span>{(expert.name?.[0] ?? 'T').toUpperCase() + (expert.name?.at(-1) ?? '').toUpperCase()}</span>
+                <div class="flex items-center gap-3 min-w-[220px]">
+
+                  <!-- Avatar -->
+                  <div class="relative w-11 h-11 shrink-0 rounded-full bg-gray-800 border border-gray-700 overflow-hidden flex items-center justify-center">
+                    {#if expert.image_url}
+                      <img
+                        src={expert.image_url}
+                        alt={expert.name}
+                        class="w-full h-full object-cover"
+                      />
+                    {:else}
+                      <span class="text-xs font-bold text-gray-300">
+                        {(expert.name?.[0] ?? 'T').toUpperCase() +
+                          (expert.name?.at(-1) ?? '').toUpperCase()}
+                      </span>
+                    {/if}
                   </div>
-                  <div>
-                    <span class="block text-sm font-semibold text-white">{expert.name}</span>
-                    <span class="block text-xs text-gray-400 max-w-xs truncate">{expert.description ?? expert.desc}</span>
+
+                  <!-- Trader Info -->
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-white truncate">
+                      {expert.name}
+                    </p>
+
+                    <p class="mt-0.5 max-w-[220px] truncate text-[11px] text-gray-500">
+                      {expert.description ?? expert.desc ?? 'Professional trader'}
+                    </p>
                   </div>
+
                 </div>
               </td>
-              <td class="px-5 py-4 font-mono font-bold text-emerald-400 text-xs">
-                {expert.monthly_returns}
+
+
+              <!-- Monthly Return -->
+              <td class="px-5 py-4">
+                <div class="inline-flex items-center rounded-lg bg-emerald-500/10 border border-emerald-500/10 px-2.5 py-1">
+                  <span class="font-mono text-xs font-bold text-emerald-400">
+                    {expert.monthly_returns}
+                  </span>
+                </div>
               </td>
-              <td class="px-5 py-4 font-mono font-bold text-blue-400 text-xs hidden md:table-cell">
-                {expert.winrate}
+
+
+              <!-- Win Rate -->
+              <td class="px-5 py-4 hidden sm:table-cell">
+                <div class="flex items-center gap-2">
+                  <div class="w-16 h-1.5 rounded-full bg-gray-800 overflow-hidden">
+                    <div
+                      class="h-full rounded-full bg-blue-500"
+                      style={`width: ${parseFloat(expert.winrate) || 0}%`}
+                    ></div>
+                  </div>
+
+                  <span class="font-mono text-xs font-semibold text-blue-400">
+                    {expert.winrate}
+                  </span>
+                </div>
               </td>
-              <td class="px-5 py-4 text-xs text-gray-300 hidden md:table-cell">
-                {expert.followers}
+
+
+              <!-- Followers -->
+              <td class="px-5 py-4 hidden lg:table-cell">
+                <span class="text-xs font-medium text-gray-300">
+                  {expert.followers}
+                </span>
               </td>
-              <td class="px-5 py-4 font-mono text-xs text-gray-200">
-                ${expert.copy_price}
+
+
+              <!-- Price -->
+              <td class="px-5 py-4">
+                <span class="text-xs font-semibold text-gray-200">
+                  ${expert.copy_price}
+                </span>
+                <span class="block text-[10px] text-gray-600">
+                  / copy
+                </span>
               </td>
-              <td class="px-5 py-4 text-right">
+
+
+              <!-- Actions -->
+              <td class="px-5 py-4">
                 <div class="flex items-center justify-end gap-2">
-                  <button 
+
+                  <button
                     onclick={() => openEditModal(expert)}
-                    class="text-xs font-semibold px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg transition-all"
+                    class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-[11px] font-semibold text-gray-300 transition-all hover:border-gray-600 hover:bg-gray-700 hover:text-white"
                   >
                     Edit
                   </button>
-                  <button 
+
+                  <button
                     onclick={() => openDeleteModal(expert)}
-                    class="text-xs font-semibold px-3 py-1.5 bg-red-950/50 hover:bg-red-900/60 text-red-400 border border-red-900/50 rounded-lg transition-all"
+                    class="inline-flex items-center justify-center rounded-lg border border-red-900/40 bg-red-950/30 px-3 py-2 text-[11px] font-semibold text-red-400 transition-all hover:border-red-800/60 hover:bg-red-950/60"
                   >
                     Delete
                   </button>
+
                 </div>
               </td>
+
             </tr>
           {/each}
+
         {:else}
+
           <tr>
-            <td colspan="6" class="px-5 py-8 text-center text-gray-500 text-xs">
-              No expert traders registered yet. Click "Add New Trader" to list one.
+            <td colspan="6">
+              <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
+
+                <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-800 bg-gray-800/50">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-5 w-5 text-gray-500"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0"
+                    />
+                  </svg>
+                </div>
+
+                <p class="text-sm font-medium text-gray-300">
+                  No traders yet
+                </p>
+
+                <p class="mt-1 text-xs text-gray-500">
+                  Add your first expert trader to get started.
+                </p>
+
+              </div>
             </td>
           </tr>
+
         {/if}
       </tbody>
     </table>
   </div>
+</div>
+
+
+<!-- MOBILE TRADER CARDS -->
+<div class="space-y-3 sm:hidden">
+
+  {#if Array.isArray(data?.experts) && data.experts.length > 0}
+
+    {#each data.experts as expert}
+
+      <div class="rounded-2xl border border-gray-800 bg-gray-900/70 p-4">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between gap-3">
+
+          <div class="flex items-center gap-3 min-w-0">
+
+            <div class="w-11 h-11 shrink-0 rounded-full bg-gray-800 border border-gray-700 overflow-hidden flex items-center justify-center">
+
+              {#if expert.image_url}
+                <img
+                  src={expert.image_url}
+                  alt={expert.name}
+                  class="w-full h-full object-cover"
+                />
+              {:else}
+                <span class="text-xs font-bold text-gray-300">
+                  {(expert.name?.[0] ?? 'T').toUpperCase() +
+                    (expert.name?.at(-1) ?? '').toUpperCase()}
+                </span>
+              {/if}
+
+            </div>
+
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-white truncate">
+                {expert.name}
+              </p>
+
+              <p class="text-[11px] text-gray-500 truncate">
+                {expert.description ?? expert.desc ?? 'Professional trader'}
+              </p>
+            </div>
+
+          </div>
+
+          <div class="shrink-0 text-right">
+            <p class="text-sm font-bold text-emerald-400">
+              {expert.monthly_returns}
+            </p>
+            <p class="text-[10px] text-gray-600">
+              monthly
+            </p>
+          </div>
+
+        </div>
+
+
+        <!-- Stats -->
+        <div class="mt-4 grid grid-cols-3 divide-x divide-gray-800 rounded-xl border border-gray-800 bg-gray-950/40 py-3">
+
+          <div class="text-center">
+            <p class="text-[10px] uppercase tracking-wider text-gray-600">
+              Win Rate
+            </p>
+            <p class="mt-1 text-xs font-bold text-blue-400">
+              {expert.winrate}
+            </p>
+          </div>
+
+          <div class="text-center">
+            <p class="text-[10px] uppercase tracking-wider text-gray-600">
+              Followers
+            </p>
+            <p class="mt-1 text-xs font-bold text-gray-300">
+              {expert.followers}
+            </p>
+          </div>
+
+          <div class="text-center">
+            <p class="text-[10px] uppercase tracking-wider text-gray-600">
+              Price
+            </p>
+            <p class="mt-1 text-xs font-bold text-gray-200">
+              ${expert.copy_price}
+            </p>
+          </div>
+
+        </div>
+
+
+        <!-- Actions -->
+        <div class="mt-3 grid grid-cols-2 gap-2">
+
+          <button
+            onclick={() => openEditModal(expert)}
+            class="rounded-xl border border-gray-700 bg-gray-800 py-2.5 text-xs font-semibold text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
+          >
+            Edit Trader
+          </button>
+
+          <button
+            onclick={() => openDeleteModal(expert)}
+            class="rounded-xl border border-red-900/40 bg-red-950/30 py-2.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-950/60"
+          >
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    {/each}
+
+  {:else}
+
+    <div class="rounded-2xl border border-gray-800 bg-gray-900/70 px-6 py-12 text-center">
+      <p class="text-sm font-medium text-gray-300">
+        No traders yet
+      </p>
+
+      <p class="mt-1 text-xs text-gray-500">
+        Add your first expert trader to get started.
+      </p>
+    </div>
+
+  {/if}
+
 </div>
 
 <!-- ADD / EDIT TRADER MODAL -->
@@ -276,6 +578,54 @@
       {/if}
 
       <div class="space-y-4">
+        <div>
+  <label class="block text-xs font-medium text-gray-400 mb-1" for="trader-image">
+    Trader Image
+  </label>
+
+  <div class="flex items-center gap-4">
+    <div class="w-16 h-16 rounded-full bg-gray-800 border border-gray-700 overflow-hidden flex items-center justify-center shrink-0">
+      {#if traderForm.image}
+        <img
+          src={URL.createObjectURL(traderForm.image)}
+          alt="Trader preview"
+          class="w-full h-full object-cover"
+        />
+      {:else if traderForm.image_url}
+        <img
+          src={traderForm.image_url}
+          alt={traderForm.name || 'Trader'}
+          class="w-full h-full object-cover"
+        />
+      {:else}
+        <span class="text-gray-400 text-xs font-bold">
+          {(traderForm.name?.[0] ?? 'T').toUpperCase()}
+        </span>
+      {/if}
+    </div>
+
+    <div>
+      <input
+        id="trader-image"
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        disabled={isLoading}
+        onchange={(e) => {
+          traderForm.image = e.currentTarget.files?.[0] ?? null;
+        }}
+        class="block w-full text-xs text-gray-400
+               file:mr-3 file:py-2 file:px-3
+               file:rounded-lg file:border-0
+               file:bg-gray-800 file:text-gray-200
+               hover:file:bg-gray-700"
+      />
+
+      <p class="text-[10px] text-gray-500 mt-1">
+        PNG, JPG or WebP
+      </p>
+    </div>
+  </div>
+</div>
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1" for="trader-name">Trader Name *</label>
           <input 
