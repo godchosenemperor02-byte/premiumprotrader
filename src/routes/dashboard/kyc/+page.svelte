@@ -71,17 +71,36 @@ function validateImage(file) {
   return null;
 }
 function handleIdFrontChange(e) {
-  const file = e.target.files?.[0];
+  const frontExtension =
+  kycForm.idFront.name.split('.').pop()?.toLowerCase() || 'jpg';
 
-  const error = validateImage(file);
+const frontPath =
+  `${userId}/front-${crypto.randomUUID()}.${frontExtension}`;
 
-  if (error) {
-    errorMessage = error;
-    return;
-  }
+const {
+  data: frontUpload,
+  error: frontUploadError
+} = await supabase.storage
+  .from('kyc-documents')
+  .upload(
+    frontPath,
+    kycForm.idFront,
+    {
+      cacheControl: '3600',
+      contentType: kycForm.idFront.type,
+      upsert: false
+    }
+  );
 
-  kycForm.idFront = file;
-  errorMessage = '';
+if (frontUploadError) {
+  console.error('KYC FRONT UPLOAD ERROR:', frontUploadError);
+
+  throw new Error(
+    `ID upload failed: ${frontUploadError.message}`
+  );
+}
+
+console.log('Front uploaded:', frontUpload);
 }
 
 function handleIdBackChange(e) {
