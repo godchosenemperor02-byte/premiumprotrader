@@ -97,51 +97,6 @@ function handleIdBackChange(e) {
   kycForm.idBack = file;
   errorMessage = '';
 }
-  async function handleKYCSubmit(e) {
-    e.preventDefault();
-
-    if (!kycForm.fullName.trim() || !kycForm.idNumber.trim()) {
-      errorMessage = 'Please complete all required fields.';
-      return;
-    }
-
-    isLoading = true;
-    errorMessage = '';
-    successMessage = '';
-
-    if (supabase) {
-      const { data: userData, error: authError } = await supabase.auth.getUser();
-      const userId = userData?.user?.id;
-
-      if (authError || !userId) {
-        errorMessage = 'Unable to verify user session.';
-        isLoading = false;
-        return;
-      }
-
-      // Update the kyc status in the profile table to true
-      const { error } = await supabase
-        .from('profiles')
-        .update({ kyc: true })
-        .eq('id', userId); 
-
-      if (error) {
-        errorMessage = error.message;
-        isLoading = false;
-        return;
-      }
-
-      // Trigger success states
-      successMessage = 'KYC successfully verified!';
-      isKycCompleted = true;
-      isSubmitted = true;
-      isLoading = false;
-      
-    } else {
-      errorMessage = 'Database connection missing.';
-      isLoading = false;
-    }
-  }
 
 async function handleKYCSubmit(e) {
   e.preventDefault();
