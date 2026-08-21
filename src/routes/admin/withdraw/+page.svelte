@@ -133,8 +133,7 @@
 </script>
 
 <div class="min-h-screen bg-[#111827] text-slate-100 font-sans antialiased p-4 sm:p-6 lg:p-8">
-  <div class="max-w-7xl mx-auto space-y-8">
-    
+ 
     <!-- Page Header Title Block -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
       <div class="space-y-1">
