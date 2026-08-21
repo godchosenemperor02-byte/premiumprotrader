@@ -240,6 +240,88 @@
     </div>
   </div>
 
+<!-- KYC Verification Status -->
+<div
+  class={`flex items-center justify-between gap-4 p-4 rounded-xl border ${
+    data.profile?.kyc
+      ? 'bg-emerald-500/10 border-emerald-500/20'
+      : 'bg-amber-500/10 border-amber-500/20'
+  }`}
+>
+  <div class="flex items-center gap-3">
+    <div
+      class={`flex items-center justify-center w-9 h-9 rounded-full ${
+        data.profile?.kyc
+          ? 'bg-emerald-500/20 text-emerald-400'
+          : 'bg-amber-500/20 text-amber-400'
+      }`}
+    >
+      {#if data.profile?.kyc}
+        <!-- Check icon -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-5 h-5"
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      {:else}
+        <!-- Warning icon -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-5 h-5"
+        >
+          <path d="M10.3 3.2 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.2a2 2 0 0 0-3.4 0Z" />
+          <path d="M12 9v4" />
+          <path d="M12 17h.01" />
+        </svg>
+      {/if}
+    </div>
+
+    <div>
+      <p
+        class={`text-sm font-bold ${
+          data.profile?.kyc
+            ? 'text-emerald-400'
+            : 'text-amber-400'
+        }`}
+      >
+        {data.profile?.kyc ? 'KYC Verified' : 'KYC Verification Required'}
+      </p>
+
+      <p class="text-xs text-slate-400 mt-0.5">
+        {data.profile?.kyc
+          ? 'Your identity has been successfully verified.'
+          : 'Complete your KYC verification to unlock all account features.'}
+      </p>
+    </div>
+  </div>
+
+  {#if !data.profile?.kyc}
+    <a
+      href="/dashboard/kyc"
+      class="shrink-0 px-4 py-2 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 transition-colors"
+    >
+      Verify Now
+    </a>
+  {:else}
+    <span class="shrink-0 px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+      Verified
+    </span>
+  {/if}
+</div>
+
   <!-- Dashboard Header -->
   <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/60 pb-6">
     <div>
