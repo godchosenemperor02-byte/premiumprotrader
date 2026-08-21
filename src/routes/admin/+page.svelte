@@ -4,6 +4,7 @@
   // Svelte 5 Runes Props & Safe Derived Access
   let { data } = $props();
   let supabase = $derived(data?.supabase);
+  let isVerifyingKyc = $state(false);
 
   // Dialog State Management
   let isAddOpen = $state(false);
@@ -48,7 +49,43 @@
     country: '',
     phonenumber: ''
   });
+async function handleVerifyKyc() {
+  if (!selectedUser?.id) {
+    errorMessage = 'No user selected.';
+    return;
+  }
 
+  isVerifyingKyc = true;
+  errorMessage = '';
+  successMessage = '';
+
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        kyc: true
+      })
+      .eq('id', selectedUser.id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Update the currently displayed user immediately
+    selectedUser = {
+      ...selectedUser,
+      kyc: true
+    };
+
+    successMessage = 'KYC verified successfully.';
+
+  } catch (error) {
+    errorMessage =
+      error?.message || 'Failed to verify KYC.';
+  } finally {
+    isVerifyingKyc = false;
+  }
+}
   // Form Fields for Edit Modal
   let editForm = $state({
     id: '',
@@ -630,120 +667,281 @@
 {/if}
 
 <!-- EDIT USER MODAL -->
+<!-- EDIT USER MODAL -->
 {#if isEditOpen}
   <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
-        <h3 class="text-base sm:text-lg font-bold text-white">Edit User Profile</h3>
-        <button onclick={closeModals} class="text-slate-400 hover:text-white text-sm p-1 rounded-md hover:bg-slate-800 transition-colors">✕</button>
+    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl w-full max-w-md p-5 sm:p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div>
+          <h3 class="text-base sm:text-lg font-semibold text-white tracking-tight">
+            Edit User Profile
+          </h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">
+            Manage account settings and verification
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onclick={closeModals}
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-all"
+          aria-label="Close"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.8"
+            stroke="currentColor"
+            class="w-4 h-4"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {#if errorMessage}
-        <div class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl">
-          {errorMessage}
+        <div class="flex items-start gap-2.5 p-3.5 bg-rose-500/[0.06] border border-rose-500/20 text-rose-400 text-xs rounded-xl">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.8"
+            stroke="currentColor"
+            class="w-4 h-4 shrink-0 mt-0.5"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM12 16.5h.008v.008H12V16.5Z" />
+          </svg>
+          <span>{errorMessage}</span>
         </div>
       {/if}
 
       {#if successMessage}
-        <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl">
-          {successMessage}
+        <div class="flex items-start gap-2.5 p-3.5 bg-emerald-500/[0.06] border border-emerald-500/20 text-emerald-400 text-xs rounded-xl">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.8"
+            stroke="currentColor"
+            class="w-4 h-4 shrink-0 mt-0.5"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4.5 4.5L19 7" />
+          </svg>
+          <span>{successMessage}</span>
         </div>
       {/if}
 
-      <!-- Verify Action Panel (Deposits & Withdrawals) -->
-      <div class="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3">
-        <div>
-          <span class="block text-xs font-semibold text-slate-200">Transaction Verification</span>
-          <span class="block text-[11px] text-slate-400">Complete pending transactions & auto-update capital balance</span>
-        </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <!-- Verify Deposit Button -->
-          <button
-            type="button"
-            onclick={handleVerifyLastDeposit}
-            disabled={isVerifyingDeposit || isVerifyingWithdrawal || isLoading}
-            class="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
-          >
-            {#if isVerifyingDeposit}
-              <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      <!-- KYC Verification -->
+      <div class="rounded-xl border border-slate-800 bg-slate-950/40 overflow-hidden">
+        <div class="flex items-center justify-between gap-3 px-4 py-3.5 border-b border-slate-800">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.8"
+                stroke="currentColor"
+                class="w-4.5 h-4.5"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9Z" />
               </svg>
-              <span>Verifying Deposit...</span>
-            {:else}
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m0-15l-3.75 3.75M12 4.5l3.75 3.75" />
-              </svg>
-              <span>Verify Last Deposit</span>
-            {/if}
-          </button>
+            </div>
 
-          <!-- Verify Withdrawal Button -->
+            <div class="min-w-0">
+              <span class="block text-xs font-semibold text-slate-200">
+                Identity Verification
+              </span>
+              <span class="block text-[11px] text-slate-500 mt-0.5">
+                Review and approve submitted KYC
+              </span>
+            </div>
+          </div>
+
+          {#if selectedUser?.kyc}
+            <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Verified
+            </span>
+          {:else}
+            <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              Pending
+            </span>
+          {/if}
+        </div>
+
+        <div class="p-4">
           <button
             type="button"
-            onclick={handleVerifyLastWithdrawal}
-            disabled={isVerifyingDeposit || isVerifyingWithdrawal || isLoading}
-            class="w-full px-3 py-2 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-xs font-medium rounded-lg transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+            onclick={handleVerifyKyc}
+            disabled={isVerifyingKyc || isVerifyingDeposit || isVerifyingWithdrawal || isLoading}
+            class="w-full h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-semibold transition-all shadow-sm shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {#if isVerifyingWithdrawal}
-              <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            {#if isVerifyingKyc}
+              <svg
+                class="animate-spin w-3.5 h-3.5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
+                />
               </svg>
-              <span>Verifying Withdrawal...</span>
+
+              <span>Verifying KYC...</span>
+            {:else if selectedUser?.kyc}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+                stroke="currentColor"
+                class="w-4 h-4"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4.5 4.5L19 7" />
+              </svg>
+
+              <span>KYC Already Verified</span>
             {:else}
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19.5v-15m0 15l-3.75-3.75M12 19.5l3.75-3.75" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.8"
+                stroke="currentColor"
+                class="w-4 h-4"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9Z" />
               </svg>
-              <span>Verify Last Withdrawal</span>
+
+              <span>Verify KYC</span>
             {/if}
           </button>
         </div>
       </div>
 
-      <div class="space-y-3 sm:space-y-4">
+      <!-- Transaction Verification -->
+      <div class="rounded-xl border border-slate-800 bg-slate-950/40 overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-slate-800">
+          <span class="block text-xs font-semibold text-slate-200">
+            Transaction Verification
+          </span>
+          <span class="block text-[11px] text-slate-500 mt-0.5">
+            Complete pending transactions and update capital
+          </span>
+        </div>
+
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            onclick={handleVerifyLastDeposit}
+            disabled={isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc || isLoading}
+            class="h-9 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/20 hover:border-emerald-500/30 text-emerald-400 text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+          >
+            {#if isVerifyingDeposit}
+              <svg class="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+              </svg>
+              <span>Verifying...</span>
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-3.5 h-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m0-15-3.75 3.75M12 4.5l3.75 3.75" />
+              </svg>
+              <span>Verify Deposit</span>
+            {/if}
+          </button>
+
+          <button
+            type="button"
+            onclick={handleVerifyLastWithdrawal}
+            disabled={isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc || isLoading}
+            class="h-9 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/20 hover:border-amber-500/30 text-amber-400 text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+          >
+            {#if isVerifyingWithdrawal}
+              <svg class="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+              </svg>
+              <span>Verifying...</span>
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-3.5 h-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19.5v-15m0 15-3.75-3.75M12 19.5l3.75-3.75" />
+              </svg>
+              <span>Verify Withdrawal</span>
+            {/if}
+          </button>
+        </div>
+      </div>
+
+      <!-- Account Settings -->
+      <div class="space-y-3.5">
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1.5" for="profit">Profit</label>
-            <input 
+            <label class="block text-[11px] font-medium text-slate-400 mb-1.5" for="profit">
+              Profit
+            </label>
+            <input
               id="profit"
-              type="number" 
-              bind:value={editForm.profit} 
-              disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
-              class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+              type="number"
+              bind:value={editForm.profit}
+              disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc}
+              class="w-full h-10 bg-slate-950/60 border border-slate-800 rounded-lg px-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/10 transition-all disabled:opacity-50"
             />
           </div>
+
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1.5" for="capital">Capital</label>
-            <input 
+            <label class="block text-[11px] font-medium text-slate-400 mb-1.5" for="capital">
+              Capital
+            </label>
+            <input
               id="capital"
-              type="number" 
-              bind:value={editForm.capital} 
-              disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
-              class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+              type="number"
+              bind:value={editForm.capital}
+              disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc}
+              class="w-full h-10 bg-slate-950/60 border border-slate-800 rounded-lg px-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/10 transition-all disabled:opacity-50"
             />
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1.5" for="signal">Signal Value</label>
-          <input 
+          <label class="block text-[11px] font-medium text-slate-400 mb-1.5" for="signal">
+            Signal Value
+          </label>
+          <input
             id="signal"
-            type="number" 
-            bind:value={editForm.signal} 
-            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
-            class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+            type="number"
+            bind:value={editForm.signal}
+            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc}
+            class="w-full h-10 bg-slate-950/60 border border-slate-800 rounded-lg px-3 text-sm text-slate-100 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/10 transition-all disabled:opacity-50"
           />
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1.5" for="account_signal">Account Signal Plan</label>
-          <select 
+          <label class="block text-[11px] font-medium text-slate-400 mb-1.5" for="account_signal">
+            Account Signal Plan
+          </label>
+          <select
             id="account_signal"
-            bind:value={editForm.account_signal} 
-            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
-            class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+            bind:value={editForm.account_signal}
+            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc}
+            class="w-full h-10 bg-slate-950/60 border border-slate-800 rounded-lg px-3 text-sm text-slate-100 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/10 transition-all disabled:opacity-50"
           >
             {#if Array.isArray(data?.subscription) && data.subscription.length > 0}
               {#each data.subscription as sub}
@@ -756,14 +954,16 @@
             {/if}
           </select>
         </div>
-        
+
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1.5" for="copied_expert">Copied Expert</label>
-          <select 
+          <label class="block text-[11px] font-medium text-slate-400 mb-1.5" for="copied_expert">
+            Copied Expert
+          </label>
+          <select
             id="copied_expert"
-            bind:value={editForm.copy_expert} 
-            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
-            class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all disabled:opacity-50"
+            bind:value={editForm.copy_expert}
+            disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc}
+            class="w-full h-10 bg-slate-950/60 border border-slate-800 rounded-lg px-3 text-sm text-slate-100 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/10 transition-all disabled:opacity-50"
           >
             {#if Array.isArray(data?.experts)}
               {#each data.experts as expert}
@@ -774,28 +974,38 @@
             {/if}
           </select>
         </div>
+
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-3 sm:pt-4 border-t border-slate-800">
-        <button 
-          onclick={closeModals} 
-          disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
-          class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition-all disabled:opacity-50"
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-800">
+        <button
+          type="button"
+          onclick={closeModals}
+          disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc}
+          class="h-9 px-4 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-[11px] font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Cancel
         </button>
-        <button 
-          onclick={handleSaveUser} 
-          disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal}
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-xl transition-all shadow-md shadow-blue-500/10 disabled:opacity-50 flex items-center gap-2"
+
+        <button
+          type="button"
+          onclick={handleSaveUser}
+          disabled={isLoading || isVerifyingDeposit || isVerifyingWithdrawal || isVerifyingKyc}
+          class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-[11px] font-semibold transition-all shadow-sm shadow-blue-900/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {#if isLoading}
+            <svg class="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+            </svg>
             <span>Saving...</span>
           {:else}
             <span>Save Changes</span>
           {/if}
         </button>
       </div>
+
     </div>
   </div>
 {/if}
