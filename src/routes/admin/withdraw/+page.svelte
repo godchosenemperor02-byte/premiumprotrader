@@ -230,110 +230,437 @@
     </div>
 
     <!-- Withdrawal Table -->
-    <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl backdrop-blur-md">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-sm">
-          <thead>
-            <tr class="bg-slate-900/90 border-b border-slate-800 text-slate-400 font-semibold text-xs uppercase tracking-wider">
-              <th class="px-6 py-4">User</th>
-              <th class="px-6 py-4">Amount</th>
-              <th class="px-6 py-4">Method & Destination</th>
-              <th class="px-6 py-4">Requested Date</th>
-              <th class="px-6 py-4">Status</th>
-              <th class="px-6 py-4 text-right">Actions</th>
+  <!-- WITHDRAWALS TABLE -->
+<div class="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/70 shadow-xl shadow-black/10">
+
+  <!-- Desktop / Tablet -->
+  <div class="hidden sm:block overflow-x-auto">
+    <table class="w-full min-w-[850px] border-collapse text-left">
+
+      <thead>
+        <tr class="border-b border-slate-800 bg-slate-950/40">
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            User
+          </th>
+
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Amount
+          </th>
+
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Destination
+          </th>
+
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Requested
+          </th>
+
+          <th class="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Status
+          </th>
+
+          <th class="px-5 py-4 text-right text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Actions
+          </th>
+        </tr>
+      </thead>
+
+
+      <tbody class="divide-y divide-slate-800/60">
+
+        {#if filteredWithdrawals.length > 0}
+
+          {#each filteredWithdrawals as item}
+
+            <tr class="group transition-colors hover:bg-slate-800/25">
+
+              <!-- USER -->
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-3 min-w-[190px]">
+
+                  <!-- Avatar -->
+                  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300">
+                    {(item.user_name?.[0] || item.user_email?.[0] || 'U').toUpperCase()}
+                  </div>
+
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold text-slate-100">
+                      {item.user_name || item.user_id || 'Anonymous'}
+                    </p>
+
+                    <p class="mt-0.5 max-w-[180px] truncate text-[11px] text-slate-500">
+                      {item.user_email || 'No email'}
+                    </p>
+                  </div>
+
+                </div>
+              </td>
+
+
+              <!-- AMOUNT -->
+              <td class="px-5 py-4">
+                <div>
+                  <p class="font-mono text-sm font-bold text-white">
+                    ${Number(item.amount || 0).toLocaleString(undefined, {
+                      minimumFractionDigits: 2
+                    })}
+                  </p>
+
+                  <p class="mt-0.5 text-[10px] text-slate-600">
+                    Withdrawal
+                  </p>
+                </div>
+              </td>
+
+
+              <!-- DESTINATION -->
+              <td class="px-5 py-4">
+                <div class="max-w-[220px]">
+
+                  <span class="inline-flex items-center rounded-md border border-slate-700 bg-slate-800/80 px-2 py-1 text-[10px] font-semibold text-slate-300">
+                    {item.method || 'Crypto / Bank'}
+                  </span>
+
+                  <p
+                    class="mt-1 truncate font-mono text-[11px] text-slate-500"
+                    title={item.destination_address || item.wallet_address}
+                  >
+                    {item.destination_address || item.wallet_address || 'N/A'}
+                  </p>
+
+                </div>
+              </td>
+
+
+              <!-- DATE -->
+              <td class="px-5 py-4">
+                {#if item.created_at}
+
+                  <div>
+                    <p class="text-xs font-medium text-slate-300">
+                      {new Date(item.created_at).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </p>
+
+                    <p class="mt-0.5 text-[10px] text-slate-600">
+                      {new Date(item.created_at).toLocaleTimeString(undefined, {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+
+                {:else}
+
+                  <span class="text-xs text-slate-600">
+                    N/A
+                  </span>
+
+                {/if}
+              </td>
+
+
+              <!-- STATUS -->
+              <td class="px-5 py-4">
+
+                {#if item.status?.toLowerCase() === 'completed'}
+
+                  <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/15 bg-emerald-500/10 px-2.5 py-1.5 text-[10px] font-semibold text-emerald-400">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                    Completed
+                  </span>
+
+                {:else if item.status?.toLowerCase() === 'rejected'}
+
+                  <span class="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/15 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-semibold text-rose-400">
+                    <span class="h-1.5 w-1.5 rounded-full bg-rose-400"></span>
+                    Rejected
+                  </span>
+
+                {:else}
+
+                  <span class="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/15 bg-amber-500/10 px-2.5 py-1.5 text-[10px] font-semibold text-amber-400">
+                    <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
+                    Pending
+                  </span>
+
+                {/if}
+
+              </td>
+
+
+              <!-- ACTIONS -->
+              <td class="px-5 py-4">
+                <div class="flex items-center justify-end gap-2">
+
+                  {#if item.status?.toLowerCase() === 'pending'}
+
+                    <button
+                      onclick={() => openApproveModal(item)}
+                      class="inline-flex items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-400 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/20 hover:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    >
+                      Approve
+                    </button>
+
+                    <button
+                      onclick={() => openRejectModal(item)}
+                      class="inline-flex items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-[11px] font-semibold text-rose-400 transition-all hover:border-rose-500/40 hover:bg-rose-500/20 hover:text-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+                    >
+                      Reject
+                    </button>
+
+                  {:else}
+
+                    <span class="px-2 text-[10px] font-medium text-slate-600">
+                      Processed
+                    </span>
+
+                  {/if}
+
+                </div>
+              </td>
+
             </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-800/60 text-slate-300">
-            {#if filteredWithdrawals.length > 0}
-              {#each filteredWithdrawals as item}
-                <tr class="hover:bg-slate-800/40 transition-colors">
-                  <!-- User Info -->
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center gap-3">
-                      <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-200">
-                        {(item.user_name?.[0] || item.user_email?.[0] || 'U').toUpperCase()}
-                      </div>
-                      <div>
-                        <span class="block text-sm font-semibold text-slate-100">{item.user_name || 'Anonymous'}</span>
-                        <span class="block text-xs text-slate-400">{item.user_email || 'No email'}</span>
-                      </div>
-                    </div>
-                  </td>
 
-                  <!-- Amount -->
-                  <td class="px-6 py-4 whitespace-nowrap font-mono font-semibold text-white">
-                    ${Number(item.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </td>
+          {/each}
 
-                  <!-- Method & Address -->
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="space-y-0.5">
-                      <span class="inline-block text-xs font-semibold text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-                        {item.payment_method || 'Crypto / Bank'}
-                      </span>
-                      <p class="text-xs text-slate-400 font-mono max-w-[200px] truncate" title={item.destination_address}>
-                        {item.destination_address || item.wallet_address || 'N/A'}
-                      </p>
-                    </div>
-                  </td>
+        {:else}
 
-                  <!-- Date -->
-                  <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-400">
-                    {item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                  </td>
+          <tr>
+            <td colspan="6">
 
-                  <!-- Status Badge -->
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    {#if item.status?.toLowerCase() === 'completed'}
-                      <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        ● Completed
-                      </span>
-                    {:else if item.status?.toLowerCase() === 'rejected'}
-                      <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                        ● Rejected
-                      </span>
-                    {:else}
-                      <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
-                        ● Pending Approval
-                      </span>
-                    {/if}
-                  </td>
+              <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
 
-                  <!-- Action Buttons -->
-                  <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                    {#if item.status?.toLowerCase() === 'pending'}
-                      <button 
-                        onclick={() => openApproveModal(item)}
-                        class="text-xs font-medium px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-lg transition-all focus:ring-2 focus:ring-emerald-500/40"
-                      >
-                        Approve
-                      </button>
-                      <button 
-                        onclick={() => openRejectModal(item)}
-                        class="text-xs font-medium px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all focus:ring-2 focus:ring-rose-500/40"
-                      >
-                        Reject
-                      </button>
-                    {:else}
-                      <span class="text-xs text-slate-500 italic pr-2">Processed</span>
-                    {/if}
-                  </td>
-                </tr>
-              {/each}
+                <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-800/40">
+
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-5 w-5 text-slate-600"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 6v12m0 0 4-4m-4 4-4-4M6.75 3.75h10.5A2.25 2.25 0 0 1 19.5 6v12a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 18V6a2.25 2.25 0 0 1 2.25-2.25Z"
+                    />
+                  </svg>
+
+                </div>
+
+                <p class="text-sm font-medium text-slate-300">
+                  No withdrawals found
+                </p>
+
+                <p class="mt-1 text-xs text-slate-600">
+                  No records match your current filters.
+                </p>
+
+              </div>
+
+            </td>
+          </tr>
+
+        {/if}
+
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- MOBILE CARDS -->
+  <div class="space-y-3 p-3 sm:hidden">
+
+    {#if filteredWithdrawals.length > 0}
+
+      {#each filteredWithdrawals as item}
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+
+          <!-- User + Status -->
+          <div class="flex items-start justify-between gap-3">
+
+            <div class="flex min-w-0 items-center gap-3">
+
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300">
+                {(item.user_name?.[0] || item.user_email?.[0] || 'U').toUpperCase()}
+              </div>
+
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-slate-100">
+                  {item.user_name || item.user_id || 'Anonymous'}
+                </p>
+
+                <p class="truncate text-[11px] text-slate-500">
+                  {item.user_email || 'No email'}
+                </p>
+              </div>
+
+            </div>
+
+
+            {#if item.status?.toLowerCase() === 'completed'}
+
+              <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-500/15 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                Completed
+              </span>
+
+            {:else if item.status?.toLowerCase() === 'rejected'}
+
+              <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-500/15 bg-rose-500/10 px-2 py-1 text-[10px] font-semibold text-rose-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-rose-400"></span>
+                Rejected
+              </span>
+
             {:else}
-              <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-slate-500 text-sm">
-                  No withdrawal records found matching your filters.
-                </td>
-              </tr>
+
+              <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-500/15 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
+                Pending
+              </span>
+
             {/if}
-          </tbody>
-        </table>
+
+          </div>
+
+
+          <!-- Amount -->
+          <div class="mt-4 rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
+
+            <p class="text-[10px] uppercase tracking-widest text-slate-600">
+              Withdrawal Amount
+            </p>
+
+            <p class="mt-1 font-mono text-xl font-bold text-white">
+              ${Number(item.amount || 0).toLocaleString(undefined, {
+                minimumFractionDigits: 2
+              })}
+            </p>
+
+          </div>
+
+
+          <!-- Details -->
+          <div class="mt-3 grid grid-cols-2 gap-3">
+
+            <div class="rounded-xl border border-slate-800/80 bg-slate-900/40 p-3">
+
+              <p class="text-[10px] uppercase tracking-wider text-slate-600">
+                Method
+              </p>
+
+              <p class="mt-1 truncate text-xs font-semibold text-slate-300">
+                {item.method || 'Crypto / Bank'}
+              </p>
+
+            </div>
+
+
+            <div class="rounded-xl border border-slate-800/80 bg-slate-900/40 p-3">
+
+              <p class="text-[10px] uppercase tracking-wider text-slate-600">
+                Requested
+              </p>
+
+              {#if item.created_at}
+
+                <p class="mt-1 text-xs font-semibold text-slate-300">
+                  {new Date(item.created_at).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </p>
+
+              {:else}
+
+                <p class="mt-1 text-xs text-slate-600">
+                  N/A
+                </p>
+
+              {/if}
+
+            </div>
+
+          </div>
+
+
+          <!-- Destination -->
+          <div class="mt-3 rounded-xl border border-slate-800/80 bg-slate-900/40 p-3">
+
+            <p class="text-[10px] uppercase tracking-wider text-slate-600">
+              Destination
+            </p>
+
+            <p
+              class="mt-1 truncate font-mono text-[11px] text-slate-400"
+              title={item.destination_address || item.wallet_address}
+            >
+              {item.destination_address || item.wallet_address || 'N/A'}
+            </p>
+
+          </div>
+
+
+          <!-- Actions -->
+          {#if item.status?.toLowerCase() === 'pending'}
+
+            <div class="mt-3 grid grid-cols-2 gap-2">
+
+              <button
+                onclick={() => openApproveModal(item)}
+                class="rounded-xl border border-emerald-500/20 bg-emerald-500/10 py-2.5 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/20"
+              >
+                Approve
+              </button>
+
+              <button
+                onclick={() => openRejectModal(item)}
+                class="rounded-xl border border-rose-500/20 bg-rose-500/10 py-2.5 text-xs font-semibold text-rose-400 transition-colors hover:bg-rose-500/20"
+              >
+                Reject
+              </button>
+
+            </div>
+
+          {:else}
+
+            <div class="mt-3 border-t border-slate-800 pt-3 text-center">
+              <span class="text-[10px] font-medium text-slate-600">
+                Withdrawal processed
+              </span>
+            </div>
+
+          {/if}
+
+        </div>
+
+      {/each}
+
+    {:else}
+
+      <div class="rounded-2xl border border-slate-800 bg-slate-950/40 px-6 py-12 text-center">
+
+        <p class="text-sm font-medium text-slate-300">
+          No withdrawals found
+        </p>
+
+        <p class="mt-1 text-xs text-slate-600">
+          No records match your current filters.
+        </p>
+
       </div>
-    </div>
+
+    {/if}
 
   </div>
-</div>
+
+</div>>
 
 <!-- APPROVE WITHDRAWAL MODAL -->
 {#if isApproveOpen && selectedWithdrawal}
