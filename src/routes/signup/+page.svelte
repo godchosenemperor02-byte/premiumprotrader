@@ -557,7 +557,7 @@ async function handleSignup(e: SubmitEvent) {
         <div class="space-y-4 pt-4 text-center">
           <p class="text-sm text-slate-500">Already have an account?</p>
           <a href="/login" class="block w-full">
-            <Button variant="outline" class="h-11 w-full border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white">
+            <Button variant="outline" class="h-11 w-full border-slate-700 text-black hover:bg-slate-800 hover:text-white">
               Login
             </Button>
           </a>
