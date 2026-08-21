@@ -911,7 +911,7 @@
           <span class="text-slate-200">{selectedUser?.date_of_birth ?? 'N/A'}</span>
         </div>
       <div class="flex justify-between py-2">
-          <span class="text-slate-400">Phone number/span>
+          <span class="text-slate-400">Phone number</span>
           <span class="text-slate-200">{selectedUser?.phone_number ?? 'N/A'}</span>
         </div>
       <div class="flex justify-between py-2">
