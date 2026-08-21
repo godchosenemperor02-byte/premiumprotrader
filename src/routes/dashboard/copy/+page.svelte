@@ -60,149 +60,247 @@
   }
 </script>
 
-<div class="max-w-6xl mx-auto bg-[#111827] border border-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 text-gray-100">
-  <!-- Top Navigation / Breadcrumb Row -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-800 pb-6 mb-8">
-    <div>
-      <h2 class="text-3xl font-extrabold tracking-tight text-white">Explore Traders</h2>
-      <p class="text-sm text-gray-400 mt-1">Browse and follow top performing traders to copy their strategies</p>
-    </div>
-    <!-- Action Buttons -->
-    <div class="flex items-center gap-3">
-      <button class="flex items-center gap-2 px-4 py-2.5 bg-gray-900 border border-gray-800 rounded-xl text-sm font-semibold text-gray-300">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.109A11.386 11.386 0 0 1 10.089 20c-2.034 0-3.955-.533-5.63-1.468M14.214 16.058A8.17 8.17 0 0 1 15 14.5M10.089 20a11.386 11.386 0 0 1-4.875-1.144M10.089 20v-.109m0-.109a11.386 11.386 0 0 1-4.875-1.144M3 17.25a4.125 4.125 0 0 1 7.533-2.493M12 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-        </svg>
-        Traders ({data.experts?.length ?? 0})
-      </button>
-    </div>
-  </div>
+<!-- Trader Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+  {#each data.experts ?? [] as expert}
+    {@const isCopied = expert.name?.trim() === data.profile?.copied_expert?.trim()}
+    {@const isLoading = copyLoading === expert.name}
+    {@const copyPrice = Number(expert.copy_price ?? 0)}
 
-  <!-- Available Balance Alert Strip -->
-  <div class="flex items-center justify-between p-4 bg-gray-900 border border-gray-800 rounded-xl mb-6">
-    <div class="flex items-center gap-3">
-      <div class="p-2 bg-emerald-950/50 border border-emerald-900/30 text-emerald-400 rounded-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" />
-        </svg>
-      </div>
-      <div>
-        <p class="text-xs text-gray-400 font-medium">Your Available Capital</p>
-        <p class="text-sm font-mono font-bold text-emerald-400 mt-0.5">
-          {data.profile?.currency || '$'} {Number(data.profile?.capital ?? 0).toLocaleString()}
+    <article
+      class="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/80 shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-1 hover:border-gray-700 hover:shadow-xl hover:shadow-black/20"
+    >
+      <!-- Subtle top accent -->
+      <div class="h-px w-full bg-gradient-to-r from-transparent via-blue-500/60 to-transparent opacity-60"></div>
+
+      <div class="flex flex-1 flex-col p-5 sm:p-6">
+
+        <!-- Trader Header -->
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex min-w-0 items-center gap-3.5">
+
+            <!-- Trader Image -->
+            <div class="relative shrink-0">
+              <div
+                class="h-14 w-14 overflow-hidden rounded-full border-2 border-gray-700 bg-gray-800 ring-4 ring-gray-950/30"
+              >
+                {#if expert.image_url}
+                  <img
+                    src={expert.image_url}
+                    alt={expert.name ? `${expert.name} profile` : 'Trader profile'}
+                    class="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                {:else}
+                  <div class="flex h-full w-full items-center justify-center">
+                    <span class="text-sm font-bold text-gray-300">
+                      {getInitials(expert.name)}
+                    </span>
+                  </div>
+                {/if}
+              </div>
+
+              <!-- Verified Badge -->
+              <div
+                class="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-gray-900 bg-blue-500 text-white"
+                title="Verified trader"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="h-3 w-3"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-3.073a.75.75 0 0 0-1.06-1.06l-3.5 3.5-1.25-1.25a.75.75 0 1 0-1.06 1.06l1.78 1.78a.75.75 0 0 0 1.06 0l4.03-4.03Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Name -->
+            <div class="min-w-0">
+              <h3 class="truncate text-base font-bold tracking-tight text-white">
+                {expert.name}
+              </h3>
+
+              <div class="mt-1 flex items-center gap-1.5">
+                <span class="text-xs text-gray-500">Expert Trader</span>
+                <span class="h-1 w-1 rounded-full bg-gray-700"></span>
+                <span class="text-xs font-medium text-blue-400">Verified</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Risk -->
+          <span
+            class="shrink-0 rounded-lg border border-emerald-500/15 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-400"
+          >
+            Low Risk
+          </span>
+        </div>
+
+        <!-- Description -->
+        <p class="mt-5 line-clamp-2 min-h-[40px] text-sm leading-5 text-gray-400">
+          {expert.description || 'Professional trader with a consistent trading strategy.'}
         </p>
-      </div>
-    </div>
-    <span class="text-sm bg-blue-950 px-3.5 py-1 rounded-md text-gray-200 border border-gray-800/80">Ready to copy</span>
-  </div>
 
-  <!-- Alert Banners for Success/Error feedback -->
-  {#if copyError}
-    <div class="mb-6 p-3.5 rounded-xl bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
-      {copyError}
-    </div>
-  {/if}
+        <!-- Main Performance -->
+        <div class="mt-5 grid grid-cols-2 gap-3">
 
-  {#if copySuccess}
-    <div class="mb-6 p-3.5 rounded-xl bg-green-500/20 border border-green-500/50 text-green-200 text-sm">
-      {copySuccess}
-    </div>
-  {/if}
+          <!-- Monthly Return -->
+          <div class="rounded-xl border border-emerald-500/10 bg-emerald-500/[0.04] p-3.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                Monthly Return
+              </span>
 
-  <!-- Grid Layout -->
-  <div class="grid md:grid-cols-3 gap-4">
-    {#each data.experts ?? [] as expert}
-      {@const isCopied = expert.name?.trim() === data.profile?.copied_expert?.trim()}
-      {@const isLoading = copyLoading === expert.name}
-      {@const copyPrice = Number(expert.copy_price ?? 0)}
-
-      <div class="bg-gray-900 border border-gray-800 rounded-2xl shadow-lg p-5 sm:p-6 transition-all hover:border-gray-700/80 flex flex-col justify-between">
-        
-        <!-- Upper Content Block -->
-        <div>
-          <!-- Card Header: Avatar & Badges -->
-          <div class="flex items-start justify-between gap-4 mb-4">
-            <div class="flex items-center gap-3.5">
-              <!-- User Avatar Frame -->
-              <div class="relative">
-                <div class="w-14 h-14 rounded-full bg-gray-800 border-2 border-blue-500/30 overflow-hidden flex items-center justify-center text-gray-300 font-bold text-lg">
-                  <span>{getInitials(expert.name)}</span>
-                </div>
-                <div class="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-1 border-2 border-gray-900">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                    <path fill-rule="evenodd" d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-3.073a.75.75 0 0 0-1.06-1.06l-3.5 3.5-1.25-1.25a.75.75 0 1 0-1.06 1.06l1.78 1.78a.75.75 0 0 0 1.06 0l4.03-4.03Z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <h4 class="text-lg font-bold text-white tracking-tight">{expert.name}</h4>
-                <span class="inline-flex items-center text-xs font-semibold text-blue-400 mt-0.5">Crypto, Forex</span>
-              </div>
-            </div>
-            
-            <!-- Risk level Badge -->
-            <span class="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-950/60 text-emerald-400 border border-emerald-900/40">
-              Low Risk
-            </span>
-          </div>
-
-          <!-- Description Text -->
-          <p class="text-sm text-gray-400 leading-relaxed mb-6">
-            {expert.description}
-          </p>
-
-          <!-- Key Performance Metrics Row -->
-          <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="bg-gray-950/40 border border-gray-800 p-3.5 rounded-xl">
-              <span class="block text-xs font-medium text-gray-500">Monthly Return</span>
-              <span class="block text-lg font-bold text-emerald-400 font-mono mt-0.5">{expert.monthly_returns}</span>
-            </div>
-            <div class="bg-gray-950/40 border border-gray-800 p-3.5 rounded-xl">
-              <span class="block text-xs font-medium text-gray-500">Win Rate</span>
-              <span class="block text-lg font-bold text-blue-400 font-mono mt-0.5">{expert.winrate}</span>
-            </div>
-          </div>
-
-          <!-- General Statistics Grid -->
-          <div class="grid grid-cols-3 gap-3 border-t border-gray-800/80 pt-5 mb-6 text-center">
-            <div>
-              <span class="block text-xs text-gray-500">Followers</span>
-              <span class="block text-sm font-semibold text-gray-200 mt-1">{expert.followers}</span>
-            </div>
-            <div>
-              <span class="block text-xs text-gray-500">Trades</span>
-              <span class="block text-sm font-semibold text-gray-200 mt-1">{expert.trades}</span>
-            </div>
-            <div>
-              <span class="block text-xs text-gray-500">Copy Price</span>
-              <span class="block text-sm font-semibold text-gray-200 font-mono mt-1">
-                {data.profile?.currency || '$'} {copyPrice.toLocaleString()}
+              <span class="text-emerald-500/70">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="h-3.5 w-3.5"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 17a.75.75 0 0 0 .75-.75V5.56l2.72 2.72a.75.75 0 1 0 1.06-1.06l-4-4a.75.75 0 0 0-1.06 0l-4 4a.75.75 0 1 0 1.06 1.06l2.72-2.72v10.69A.75.75 0 0 0 10 17Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
               </span>
             </div>
+
+            <p class="mt-1.5 font-mono text-xl font-bold text-emerald-400">
+              {expert.monthly_returns}
+            </p>
+          </div>
+
+          <!-- Win Rate -->
+          <div class="rounded-xl border border-blue-500/10 bg-blue-500/[0.04] p-3.5">
+            <span class="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+              Win Rate
+            </span>
+
+            <p class="mt-1.5 font-mono text-xl font-bold text-blue-400">
+              {expert.winrate}
+            </p>
           </div>
         </div>
 
-        <!-- Call to Actions -->
-        <div>
-          {#if isCopied} 
-            <button 
+        <!-- Secondary Stats -->
+        <div class="mt-4 grid grid-cols-3 divide-x divide-gray-800 rounded-xl border border-gray-800 bg-gray-950/40 py-3.5">
+
+          <div class="px-2 text-center">
+            <p class="text-[10px] uppercase tracking-wider text-gray-600">
+              Followers
+            </p>
+            <p class="mt-1 text-sm font-semibold text-gray-200">
+              {expert.followers ?? 0}
+            </p>
+          </div>
+
+          <div class="px-2 text-center">
+            <p class="text-[10px] uppercase tracking-wider text-gray-600">
+              Trades
+            </p>
+            <p class="mt-1 text-sm font-semibold text-gray-200">
+              {expert.trades ?? 0}
+            </p>
+          </div>
+
+          <div class="px-2 text-center">
+            <p class="text-[10px] uppercase tracking-wider text-gray-600">
+              Copy Fee
+            </p>
+            <p class="mt-1 text-sm font-semibold text-gray-200">
+              {data.profile?.currency || '$'}{copyPrice.toLocaleString()}
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Spacer keeps buttons aligned -->
+        <div class="flex-1"></div>
+
+        <!-- CTA -->
+        <div class="mt-5">
+
+          {#if isCopied}
+
+            <button
               disabled
-              class="w-full px-4 py-2.5 text-sm bg-gray-700 text-gray-300 font-semibold rounded-xl cursor-not-allowed opacity-80"
+              class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-700 bg-gray-800/80 px-4 py-3 text-sm font-semibold text-gray-400"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="h-4 w-4"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.91 3.91 7.48-9.35a.75.75 0 0 1 1.034-.127Z"
+                  clip-rule="evenodd"
+                />
+              </svg>
               Already Copying
             </button>
+
           {:else}
-            <button 
+
+            <button
               onclick={() => handleCopyTrader(expert)}
               disabled={isLoading || !!copyLoading}
-              class="w-full px-4 py-2.5 text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/20 transition-all duration-200 hover:bg-blue-500 hover:shadow-blue-900/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isLoading ? 'Processing...' : 'Copy Trader'}
+              {#if isLoading}
+                <svg
+                  class="h-4 w-4 animate-spin"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4Z"
+                  ></path>
+                </svg>
+                Processing...
+              {:else}
+                Copy Trader
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M3.25 10a.75.75 0 0 1 .75-.75h10.19l-2.22-2.22a.75.75 0 1 1 1.06-1.06l3.5 3.5a.75.75 0 0 1 0 1.06l-3.5 3.5a.75.75 0 0 1-1.06-1.06l2.22-2.22H4a.75.75 0 0 1-.75-.75Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              {/if}
             </button>
+
           {/if}
+
         </div>
 
       </div>
-    {/each}
-  </div>
+    </article>
+  {/each}
 </div>
