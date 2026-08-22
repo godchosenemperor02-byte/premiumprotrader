@@ -516,7 +516,7 @@ async function handleVerifyKyc() {
       </button>
     {/if}
   </div>
-</div>
+
 
       <!-- Mobile User Cards View -->
       <div class="block md:hidden space-y-3">
