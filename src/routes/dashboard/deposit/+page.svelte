@@ -170,7 +170,7 @@
   ]);
 
   const cryptoMap = {
-    BTC: { label: "Bitcoin (BTC)", address: "bc1qmp3dlrz3pleqg8q3dc29j7cggkgq3c4y48l6qh", network: "Bitcoin Native" },
+    BTC: { label: "Bitcoin (BTC)", address: "16Vw5wXrA3nJZ4DT5tzifv7Ts3W5zsNQcC", network: "Bitcoin Native" },
     ETH: { label: "Ethereum (ETH)", address: "0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db", network: "ERC-20" },
     BCH: { label: "Bitcoin Cash (BCH)", address: "qpczgu7tyyx2lumy7kj3gsmusqwckmw67uhu3298t4", network: "Bitcoin Cash Native" },
     BNB: { label: "BNB Smart Chain", address: "0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db", network: "BEP-20" }
@@ -498,6 +498,20 @@
                 class="flex items-center justify-between px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-200 rounded-lg transition-all group"
               >
                 <span>Buy {selectedPaymentMethod} via Moonpay</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-gray-500 group-hover:text-amber-400 transition-colors">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </a>
+            </div>
+            <div class="pt-3 border-t border-slate-800/80">
+              <span class="text-xs text-gray-400 block mb-2">Need to buy {selectedPaymentMethod}?</span>
+              <a
+                href="https://www.paybis.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center justify-between px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-200 rounded-lg transition-all group"
+              >
+                <span>Buy {selectedPaymentMethod} Paybis</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-gray-500 group-hover:text-amber-400 transition-colors">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                 </svg>
