@@ -5,6 +5,30 @@
   let { data } = $props();
   let supabase = $derived(data?.supabase);
   let isVerifyingKyc = $state(false);
+let searchQuery = $state('');
+
+let filteredProfileList = $derived(
+  profileList.filter((user) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return true;
+
+    const searchableText = [
+      user.first_name,
+      user.last_name,
+      user.email,
+      user.accountplan,
+      user.copied_expert,
+      user.country,
+      user.phone_number
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return searchableText.includes(query);
+  })
+);
 
   // Dialog State Management
   let isAddOpen = $state(false);
@@ -450,18 +474,53 @@ async function handleVerifyKyc() {
       </div>
     </div>
 
-    <!-- User Management Section -->
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h3 class="text-base sm:text-lg font-bold text-white">Registered Accounts</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Manage user profiles, financial allocation, and sub-tier permissions.</p>
-        </div>
-      </div>
+ <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div>
+    <h3 class="text-base sm:text-lg font-bold text-white">Registered Accounts</h3>
+    <p class="text-xs text-slate-400 mt-0.5">
+      Manage user profiles, financial allocation, and sub-tier permissions.
+    </p>
+  </div>
+
+  <div class="relative w-full sm:w-72">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.8"
+      stroke="currentColor"
+      class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="m21 21-4.35-4.35m2.1-5.4a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
+      />
+    </svg>
+
+    <input
+      type="search"
+      bind:value={searchQuery}
+      placeholder="Search users..."
+      class="w-full h-10 pl-9 pr-9 bg-slate-900/70 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/10 transition-all"
+    />
+
+    {#if searchQuery}
+      <button
+        type="button"
+        onclick={() => searchQuery = ''}
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-200 transition-colors"
+        aria-label="Clear search"
+      >
+        ✕
+      </button>
+    {/if}
+  </div>
+</div>
 
       <!-- Mobile User Cards View -->
       <div class="block md:hidden space-y-3">
-        {#each profileList as user}
+       {#each filteredProfileList as user}
           <div class="bg-slate-900/70 border border-slate-800 p-4 rounded-xl space-y-3 backdrop-blur-md">
             <div class="flex items-center justify-between">
               <div>
@@ -507,7 +566,7 @@ async function handleVerifyKyc() {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/60 font-medium">
-            {#each profileList as user}
+           {#each filteredProfileList as user}
               <tr class="hover:bg-slate-800/30 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="font-bold text-white">{user.first_name ?? 'Unregistered'} {user.last_name ?? ''}</div>
@@ -550,6 +609,35 @@ async function handleVerifyKyc() {
     </div>
   </div>
 </div>
+
+{#if filteredProfileList.length === 0}
+  <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-8 text-center">
+    <div class="text-slate-500 mb-2">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="w-8 h-8 mx-auto"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m21 21-4.35-4.35m2.1-5.4a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
+        />
+      </svg>
+    </div>
+
+    <p class="text-sm font-medium text-slate-300">
+      No users found
+    </p>
+
+    <p class="text-xs text-slate-500 mt-1">
+      Try searching by name, email, account plan, or copied expert.
+    </p>
+  </div>
+{/if}
 
 <!-- ADD USER MODAL -->
 {#if isAddOpen}
