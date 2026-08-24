@@ -17,9 +17,9 @@
   const defaultDescription = 'Trade Forex, Crypto, and global assets securely with real-time analysis and low latency execution.';
   
   // Use production domain for rock-solid OG previews across crawlers
-  const siteOrigin = 'https://www.premiumprotrader.com';
+  const siteOrigin = 'https://www.premiumprotrader.com/';
   
-  let currentUrl = $derived($page.url.href || siteOrigin);
+  let currentUrl = $derived($page.url.href/ || siteOrigin);
   let ogImageUrl = `${siteOrigin}/gj.jpg`; 
 
   onMount(() => {
