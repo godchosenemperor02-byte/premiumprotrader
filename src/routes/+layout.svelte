@@ -12,14 +12,14 @@
   let session = $derived(data?.session);
 
   // SEO Defaults
-  const siteName = 'Trading Platform';
+  const siteName = 'Premiumprotrader';
   const defaultTitle = 'Trading Platform | Secure Asset & Forex Trading';
   const defaultDescription = 'Trade Forex, Crypto, and global assets securely with real-time analysis and low latency execution.';
   
   // Construct absolute URL for social crawlers (WhatsApp/FB/Twitter require full https:// URLs)
   let currentUrl = $derived($page.url.href);
   let origin = $derived($page.url.origin);
-  let ogImageUrl = $derived(`${origin}/og-image.jpg`); // Store a 1200x630 image in static/og-image.jpg
+  let ogImageUrl = $derived(`${origin}/gj.jpg`); // Store a 1200x630 image in static/og-image.jpg
 
   onMount(() => {
     if (!supabase) return;
