@@ -19,7 +19,7 @@
   // Use production domain for rock-solid OG previews across crawlers
   const siteOrigin = 'https://www.premiumprotrader.com/';
   
-  let currentUrl = $derived($page.url.href/ || siteOrigin);
+  let currentUrl = $derived($page.url.href || siteOrigin);
   let ogImageUrl = `${siteOrigin}/gj.jpg`; 
 
   onMount(() => {
