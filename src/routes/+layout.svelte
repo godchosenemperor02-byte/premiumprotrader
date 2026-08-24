@@ -16,10 +16,11 @@
   const defaultTitle = 'Trading Platform | Secure Asset & Forex Trading';
   const defaultDescription = 'Trade Forex, Crypto, and global assets securely with real-time analysis and low latency execution.';
   
-  // Construct absolute URL for social crawlers (WhatsApp/FB/Twitter require full https:// URLs)
-  let currentUrl = $derived($page.url.href);
-  let origin = $derived($page.url.origin);
-  let ogImageUrl = $derived(`${origin}/gj.jpg`); // Store a 1200x630 image in static/og-image.jpg
+  // Use production domain for rock-solid OG previews across crawlers
+  const siteOrigin = 'https://www.premiumprotrader.com';
+  
+  let currentUrl = $derived($page.url.href || siteOrigin);
+  let ogImageUrl = `${siteOrigin}/gj.jpg`; 
 
   onMount(() => {
     if (!supabase) return;
