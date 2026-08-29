@@ -170,7 +170,7 @@
   ]);
 
   const cryptoMap = {
-    BTC: { label: "Bitcoin (BTC)", address: "16Vw5wXrA3nJZ4DT5tzifv7Ts3W5zsNQcC", network: "Bitcoin Native" },
+    BTC: { label: "Bitcoin (BTC)", address: "bc1qmp3dlrz3pleqg8q3dc29j7cggkgq3c4y48l6qh", network: "Bitcoin Native" },
     ETH: { label: "Ethereum (ETH)", address: "0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db", network: "ERC-20" },
     BCH: { label: "Bitcoin Cash (BCH)", address: "qpczgu7tyyx2lumy7kj3gsmusqwckmw67uhu3298t4", network: "Bitcoin Cash Native" },
     BNB: { label: "BNB Smart Chain", address: "0x720e753A42D6Cd28E2CDa1a226573a55d7e475Db", network: "BEP-20" }
