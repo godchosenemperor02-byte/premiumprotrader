@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from "svelte";
 	import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
-
+	let supabase = $derived(data?.supabase);
 	let { data } = $props();
 
 	// Reactive State (Svelte 5 Runes)
@@ -14,6 +14,7 @@
 	let alertMessage = $state('');
 	let isSuccess = $state(true);
 	let isFullscreen = $state(false);
+	let isLoading = $state(false);
 
 	let chartCardRef;
 	let timer;
@@ -25,27 +26,72 @@
 		amount = data.profile?.capital ?? 0;
 	};
 
-	const trade = (type) => {
+	// Function to deduct capital in Supabase
+	async function deductCapital(tradeAmount) {
+		const userId = data.profile?.id;
+		if (!userId) {
+			throw new Error("User ID not found");
+		}
+
+		const currentCapital = parseFloat(data.profile?.capital ?? 0);
+		const newCapital = currentCapital - tradeAmount;
+
+		const { error } = await supabase
+			.from('profiles') // Adjust table name if different
+			.update({ capital: newCapital })
+			.eq('id', userId);
+
+		if (error) {
+			throw error;
+		}
+
+		// Update local data reactively
+		data.profile.capital = newCapital;
+	}
+
+	const trade = async (type) => {
 		const tradeAmount = parseFloat(amount);
 		const userCapital = parseFloat(data.profile?.capital ?? 0);
 
 		if (!tradeAmount || tradeAmount <= 0) {
 			alertMessage = "Please enter a valid trade amount.";
 			isSuccess = false;
-		} else if (tradeAmount > userCapital) {
-			alertMessage = "Your available capital is too low for this order.";
-			isSuccess = false;
-		} else {
-			alertMessage = `Your ${type.toUpperCase()} trade for ${data.profile?.currency || '$'}${tradeAmount.toLocaleString()} with ${leverage} leverage for ${duration} has been placed. Contact your account manager for details.`;
-			isSuccess = true;
+			showAlert = true;
+			return;
 		}
 
-		showAlert = true;
+		if (tradeAmount > userCapital) {
+			alertMessage = "Your available capital is too low for this order.";
+			isSuccess = false;
+			showAlert = true;
+			return;
+		}
 
-		if (timer) clearTimeout(timer);
-		timer = setTimeout(() => {
-			showAlert = false;
-		}, 5000);
+		// Set loading state
+		isLoading = true;
+
+		try {
+			// Deduct capital from Supabase
+			await deductCapital(tradeAmount);
+
+			alertMessage = `Your ${type.toUpperCase()} trade for ${data.profile?.currency || '$'}${tradeAmount.toLocaleString()} with ${leverage} leverage for ${duration} has been placed. Contact your account manager for details.`;
+			isSuccess = true;
+			showAlert = true;
+
+			// Clear amount after successful trade
+			amount = '';
+		} catch (error) {
+			alertMessage = `Trade failed: ${error.message}`;
+			isSuccess = false;
+			showAlert = true;
+		} finally {
+			isLoading = false;
+
+			if (timer) clearTimeout(timer);
+			timer = setTimeout(() => {
+				showAlert = false;
+			}, 5000);
+		}
 	};
 
 	// Toggle Fullscreen Functionality
@@ -114,7 +160,6 @@
 		};
 	});
 </script>
-
 <div class="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 text-slate-100">
 	<!-- Top Bar / Header -->
 	<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-800/60 pb-6">
