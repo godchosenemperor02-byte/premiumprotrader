@@ -189,26 +189,7 @@
   <p class="text-sm text-gray-400 mt-1">Manage and monitor your wallet deposits</p>
 </div>
 
-<!-- Stats Section -->
-<div class="grid gap-4 md:grid-cols-3 my-4">
-  {#each stats as stat}
-    <Card class="bg-slate-900/60 border-slate-800 backdrop-blur-md">
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-bold uppercase tracking-wider text-gray-400">
-          {stat.label}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div class="text-2xl font-bold text-slate-100 font-mono">
-          {stat.value}
-        </div>
-        <p class="text-xs mt-1 font-medium {stat.up ? 'text-emerald-400' : 'text-rose-400'}">
-          {stat.change} <span class="text-gray-500 font-normal">from last session</span>
-        </p>
-      </CardContent>
-    </Card>
-  {/each}
-</div>
+
 
 <!-- Main Deposit Form Card -->
 <Card class="bg-slate-900/60 border-slate-800 backdrop-blur-md my-6">
