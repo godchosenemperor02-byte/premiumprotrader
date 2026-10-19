@@ -526,6 +526,14 @@
         </div>
       </div>
 
+     <div class="pt-2 border-t border-gray-800 flex justify-end">
+        <a href=""
+          class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-blue-950/50 disabled:opacity-50 flex items-center gap-2"
+        >
+          Skip for now 
+        </a>
+      </div>
+
       <!-- Submit Button -->
       <div class="pt-2 border-t border-gray-800 flex justify-end">
         <button 
