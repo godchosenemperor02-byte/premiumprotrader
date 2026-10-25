@@ -60,8 +60,7 @@ export const actions = {
               <p><strong>Back Image:</strong> ${backUrl ? `<a href="${backUrl}" target="_blank">View Back Image</a>` : 'None uploaded'}</p>
             </div>
           `
-        })
-      });
+        });
 
       const responseText = await emailRes.text();
       
