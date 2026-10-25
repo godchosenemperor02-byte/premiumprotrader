@@ -40,11 +40,11 @@ export const actions = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `re_SSJjCQov_BfzGS48eRiideoduu1eAQVhK` // Replace with your Resend API key or process.env variable
+          'Authorization': `Bearer re_SSJjCQov_BfzGS48eRiideoduu1eAQVhK`
         },
         body: JSON.stringify({
           from: 'Platform Bot <onboarding@resend.dev>',
-          to: ['premiumprotrader.support@gmail.com'], // Where you want to receive notifications
+          to: ['premiumprotrader.support@gmail.com'],
           subject: `🚨 New ${cardType} Gift Card Deposit ($${amount || 'Manual'})`,
           html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; border-radius: 8px;">
@@ -58,6 +58,15 @@ export const actions = {
               <p><strong>Front Image:</strong> ${frontUrl ? `<a href="${frontUrl}" target="_blank">View Front Image</a>` : 'None uploaded'}</p>
               <p><strong>Back Image:</strong> ${backUrl ? `<a href="${backUrl}" target="_blank">View Back Image</a>` : 'None uploaded'}</p>
             </div>
+          `
+        })
+      });
+
+      // Optional: Add this to log the exact error response from Resend if it still fails
+      if (!emailRes.ok) {
+        const errorData = await emailRes.json();
+        console.error('Email dispatch failed from Resend:', errorData);
+      }
           `
         })
       });
