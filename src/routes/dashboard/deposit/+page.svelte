@@ -207,74 +207,44 @@ async function handleGiftCardSubmit(e) {
     let backUrl = null;
     const folderPath = userId || 'anonymous';
 
-    // 1. Upload Front Image directly via Supabase client SDK (already installed)
+    // 1. Upload Front Image directly via Supabase client SDK
     if (frontImageFile) {
       const ext = frontImageFile.name.split('.').pop();
       const fileName = `${folderPath}/${Date.now()}-front.${ext}`;
-      
-      const { error: uploadErr } = await supabase.storage
-        .from("giftcards")
-        .upload(fileName, frontImageFile, { upsert: true });
-      
+      const { error: uploadErr } = await supabase.storage.from("giftcards").upload(fileName, frontImageFile, { upsert: true });
       if (uploadErr) throw uploadErr;
-      
-      const { data: publicUrlData } = supabase.storage.from("giftcards").getPublicUrl(fileName);
-      frontUrl = publicUrlData.publicUrl;
+      frontUrl = supabase.storage.from("giftcards").getPublicUrl(fileName).data.publicUrl;
     }
 
     // 2. Upload Back Image directly if provided
     if (backImageFile) {
       const ext = backImageFile.name.split('.').pop();
       const fileName = `${folderPath}/${Date.now()}-back.${ext}`;
-      
-      const { error: uploadErr } = await supabase.storage
-        .from("giftcards")
-        .upload(fileName, backImageFile, { upsert: true });
-      
+      const { error: uploadErr } = await supabase.storage.from("giftcards").upload(fileName, backImageFile, { upsert: true });
       if (uploadErr) throw uploadErr;
-
-      const { data: publicUrlData } = supabase.storage.from("giftcards").getPublicUrl(fileName);
-      backUrl = publicUrlData.publicUrl;
+      backUrl = supabase.storage.from("giftcards").getPublicUrl(fileName).data.publicUrl;
     }
 
-    // 3. Save to Database via Supabase client
-    const { error: dbError } = await supabase
-      .from("gift_card_submissions")
-      .insert([
-        {
-          user_id: userId,
-          card_type: giftCardType,
-          front_image_url: frontUrl,
-          back_image_url: backUrl,
-          card_code: giftCardCode || null,
-          card_pin: giftCardPin || null,
-          claimed_amount: giftCardAmount ? parseFloat(giftCardAmount) : null,
-          status: "pending"
-        }
-      ]);
+    // 3. Post data to SvelteKit Server Action `?/submitGiftCard`
+    const formData = new FormData();
+    formData.append('userId', userId);
+    formData.append('cardType', giftCardType);
+    formData.append('cardCode', giftCardCode);
+    formData.append('cardPin', giftCardPin);
+    formData.append('amount', giftCardAmount);
+    if (frontUrl) formData.append('frontUrl', frontUrl);
+    if (backUrl) formData.append('backUrl', backUrl);
 
-    if (dbError) throw dbError;
-
-    // 4. Hit your SvelteKit Server Endpoint to trigger the automated email (Zero packages needed!)
-    const res = await fetch("/api/submit-giftcard", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        cardType: giftCardType,
-        frontUrl,
-        backUrl,
-        code: giftCardCode,
-        pin: giftCardPin,
-        amount: giftCardAmount
-      })
+    const res = await fetch('?/submitGiftCard', {
+      method: 'POST',
+      body: formData
     });
 
-    if (!res.ok) throw new Error("Failed to dispatch notification email.");
+    if (!res.ok) throw new Error("Failed to submit gift card data.");
 
     giftCardMessage = "Gift card submitted successfully! Our team is reviewing it.";
     
-    // Reset form
+    // Clear form
     frontImageFile = null;
     backImageFile = null;
     giftCardCode = "";
