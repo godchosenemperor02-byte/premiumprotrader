@@ -44,7 +44,7 @@ export const actions = {
         },
         body: JSON.stringify({
           from: 'Platform Bot <onboarding@resend.dev>',
-          to: ['your-admin-email@gmail.com'], // Where you want to receive notifications
+          to: ['premiumprotrader.support@gmail.com'], // Where you want to receive notifications
           subject: `🚨 New ${cardType} Gift Card Deposit ($${amount || 'Manual'})`,
           html: `
             <div style="font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; border-radius: 8px;">
