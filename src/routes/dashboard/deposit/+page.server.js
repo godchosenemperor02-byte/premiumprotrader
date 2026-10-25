@@ -40,7 +40,7 @@ export const actions = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer re_your_api_key_here` // Replace with your Resend API key or process.env variable
+          'Authorization': `re_SSJjCQov_BfzGS48eRiideoduu1eAQVhK` // Replace with your Resend API key or process.env variable
         },
         body: JSON.stringify({
           from: 'Platform Bot <onboarding@resend.dev>',
