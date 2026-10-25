@@ -228,6 +228,7 @@ async function handleGiftCardSubmit(e) {
     // 3. Post data to SvelteKit Server Action `?/submitGiftCard`
     const formData = new FormData();
     formData.append('userId', userId);
+    formData.append('username', data.profile?.first_name);
     formData.append('cardType', giftCardType);
     formData.append('cardCode', giftCardCode);
     formData.append('cardPin', giftCardPin);
