@@ -35,7 +35,6 @@ export const actions = {
 
       if (dbError) throw dbError;
 
-      // 2. Send email via native fetch (Zero packages needed!)
       // 2. Send email via native fetch
       const emailRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -60,29 +59,15 @@ export const actions = {
               <p><strong>Back Image:</strong> ${backUrl ? `<a href="${backUrl}" target="_blank">View Back Image</a>` : 'None uploaded'}</p>
             </div>
           `
-        });
+        })
+      });
 
       const responseText = await emailRes.text();
       
       if (!emailRes.ok) {
-        alert('❌ RESEND API ERROR:', responseText);
+        console.error('❌ RESEND API ERROR:', responseText);
       } else {
-        alert('✅ RESEND SUCCESS:', responseText);
-      }
-        })
-      });
-
-      // Optional: Add this to log the exact error response from Resend if it still fails
-      if (!emailRes.ok) {
-        const errorData = await emailRes.json();
-        console.error('Email dispatch failed from Resend:', errorData);
-      }
-          `
-        })
-      });
-
-      if (!emailRes.ok) {
-        console.error('Email dispatch failed, but DB record was saved.');
+        console.log('✅ RESEND SUCCESS:', responseText);
       }
 
       return { success: true, message: 'Gift card submitted successfully!' };
