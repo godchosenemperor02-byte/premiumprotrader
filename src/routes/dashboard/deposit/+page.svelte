@@ -5,6 +5,15 @@
   let { data } = $props();
   let supabase = $derived(data?.supabase);
 
+  let giftCardType = $state("Amazon");
+  let giftCardCode = $state("");
+  let giftCardPin = $state("");
+  let giftCardAmount = $state("");
+  let frontImageFile = $state(null);
+  let backImageFile = $state(null);
+  let isSubmittingGiftCard = $state(false);
+  let giftCardMessage = $state("");
+
   // Derive current user ID safely
   let userId = $derived(data?.session?.user?.id || data?.profile?.id);
 
@@ -216,17 +225,18 @@
       <label for="payment-method" class="block text-sm font-medium text-gray-300 mb-1.5">
         Payment Method
       </label>
-      <select
-        id="payment-method"
-        bind:value={selectedPaymentMethod}
-        class="w-full bg-slate-950 border border-slate-800 text-slate-100 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
-      >
-        <option value="CARD">Credit / Debit Card</option>
-        <option value="BTC">Bitcoin (BTC)</option>
-        <option value="ETH">Ethereum (ETH)</option>
-        <option value="BCH">Bitcoin Cash (BCH)</option>
-        <option value="BNB">BNB Smart Chain</option>
-      </select>
+     <select
+      id="payment-method"
+      bind:value={selectedPaymentMethod}
+      class="w-full bg-slate-950 border border-slate-800 text-slate-100 px-4 py-2.5 rounded-xl..."
+    >
+      <option value="CARD">Credit / Debit Card</option>
+      <option value="GIFT_CARD">Gift Card</option> <!-- Added -->
+      <option value="BTC">Bitcoin (BTC)</option>
+      <option value="ETH">Ethereum (ETH)</option>
+      <option value="BCH">Bitcoin Cash (BCH)</option>
+      <option value="BNB">BNB Smart Chain</option>
+    </select>
     </div>
 
     <Button class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold py-3 rounded-xl transition-all shadow-md mt-2" onclick={handleProceedToPayment}>
@@ -346,7 +356,7 @@
           </p>
         </div>
 
-        <!-- Dynamic Render: CREDIT CARD FORM -->
+        <!-- 1. DYNAMIC RENDER: CREDIT CARD FORM -->
         {#if selectedPaymentMethod === "CARD"}
           <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5">
             <div class="flex items-center gap-3 mb-5">
@@ -434,7 +444,110 @@
           </div>
         {/if}
 
-        <!-- Dynamic Render: CRYPTO PAYMENT OPTION -->
+        <!-- 2. DYNAMIC RENDER: GIFT CARD OPTION -->
+        {#if selectedPaymentMethod === "GIFT_CARD"}
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-4">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="p-2.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-sm">
+                🎁
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-100">Gift Card Deposit</h3>
+                <p class="text-xs text-gray-400">Upload images or enter details manually</p>
+              </div>
+            </div>
+
+            <form class="space-y-4" onsubmit={handleGiftCardSubmit}>
+              {#if giftCardMessage}
+                <div class="p-3 text-xs text-purple-300 bg-purple-950/40 border border-purple-800/60 rounded-lg">
+                  {giftCardMessage}
+                </div>
+              {/if}
+
+              <div>
+                <label for="gc-type" class="block text-xs font-medium text-gray-300 mb-1">Gift Card Brand</label>
+                <select id="gc-type" bind:value={giftCardType} class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30">
+                  <option value="Amazon">Amazon</option>
+                  <option value="Apple">Apple / iTunes</option>
+                  <option value="Steam">Steam</option>
+                  <option value="Google Play">Google Play</option>
+                  <option value="Visa/Mastercard">Visa / Mastercard</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="front-img" class="block text-xs font-medium text-gray-300 mb-1">Front Image</label>
+                  <input 
+                    type="file" 
+                    id="front-img"
+                    accept="image/*" 
+                    onchange={(e) => frontImageFile = e.target.files[0]}
+                    class="w-full text-xs text-gray-400 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label for="back-img" class="block text-xs font-medium text-gray-300 mb-1">Back Image (Optional)</label>
+                  <input 
+                    type="file" 
+                    id="back-img"
+                    accept="image/*" 
+                    onchange={(e) => backImageFile = e.target.files[0]}
+                    class="w-full text-xs text-gray-400 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div class="border-t border-slate-800 pt-3">
+                <p class="text-xs text-gray-400 mb-2 font-medium">Or enter details manually:</p>
+                <div class="space-y-3">
+                  <div>
+                    <label for="gc-code" class="block text-[10px] uppercase font-medium text-gray-500 mb-1">Card Code / Claim Code</label>
+                    <input
+                      id="gc-code"
+                      type="text"
+                      placeholder="e.g. AQ72-XXXX-XXXX"
+                      bind:value={giftCardCode}
+                      class="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                    />
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label for="gc-pin" class="block text-[10px] uppercase font-medium text-gray-500 mb-1">PIN (if applicable)</label>
+                      <input
+                        id="gc-pin"
+                        type="text"
+                        placeholder="PIN code"
+                        bind:value={giftCardPin}
+                        class="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                      />
+                    </div>
+                    <div>
+                      <label for="gc-amount" class="block text-[10px] uppercase font-medium text-gray-500 mb-1">Face Value ($)</label>
+                      <input
+                        id="gc-amount"
+                        type="number"
+                        placeholder="0.00"
+                        bind:value={giftCardAmount}
+                        class="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmittingGiftCard}
+                class="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+              >
+                {isSubmittingGiftCard ? "Submitting Gift Card..." : "Submit Gift Card"}
+              </button>
+            </form>
+          </div>
+        {/if}
+
+        <!-- 3. DYNAMIC RENDER: CRYPTO PAYMENT OPTION -->
         {#if cryptoMap[selectedPaymentMethod]}
           {@const selectedCrypto = cryptoMap[selectedPaymentMethod]}
           <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-4">
@@ -470,8 +583,8 @@
             </div>
 
             <!-- Provider On-Ramp Link for selected coin -->
-            <div class="pt-3 border-t border-slate-800/80">
-              <span class="text-xs text-gray-400 block mb-2">Need to buy {selectedPaymentMethod}?</span>
+            <div class="pt-3 border-t border-slate-800/80 space-y-2">
+              <span class="text-xs text-gray-400 block mb-1">Need to buy {selectedPaymentMethod}?</span>
               <a
                 href="https://www.moonpay.com"
                 target="_blank"
@@ -483,16 +596,13 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                 </svg>
               </a>
-            </div>
-            <div class="pt-3 border-t border-slate-800/80">
-              <span class="text-xs text-gray-400 block mb-2">Need to buy {selectedPaymentMethod}?</span>
               <a
                 href="https://www.paybis.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex items-center justify-between px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-200 rounded-lg transition-all group"
               >
-                <span>Buy {selectedPaymentMethod} Paybis</span>
+                <span>Buy {selectedPaymentMethod} via Paybis</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-gray-500 group-hover:text-amber-400 transition-colors">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                 </svg>
@@ -500,6 +610,7 @@
             </div>
           </div>
         {/if}
+
       </div>
     </div>
   </div>
