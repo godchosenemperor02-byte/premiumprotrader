@@ -68,7 +68,7 @@ export const actions = {
       if (!emailRes.ok) {
         alert('❌ RESEND API ERROR:', responseText);
       } else {
-        alert'✅ RESEND SUCCESS:', responseText);
+        alert('✅ RESEND SUCCESS:', responseText);
       }
         })
       });
