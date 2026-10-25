@@ -5,7 +5,7 @@ export const actions = {
     const formData = await request.formData();
     
     const userId = formData.get('userId');
-    const userId = formData.get('username');
+    const username = formData.get('username');
     const cardType = formData.get('cardType');
     const cardCode = formData.get('cardCode');
     const cardPin = formData.get('cardPin');
