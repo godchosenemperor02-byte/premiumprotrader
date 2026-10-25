@@ -5,6 +5,7 @@ export const actions = {
     const formData = await request.formData();
     
     const userId = formData.get('userId');
+    const userId = formData.get('username');
     const cardType = formData.get('cardType');
     const cardCode = formData.get('cardCode');
     const cardPin = formData.get('cardPin');
@@ -50,6 +51,7 @@ export const actions = {
             <div style="font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; border-radius: 8px;">
               <h2 style="color: #333;">New Gift Card Upload</h2>
               <p><strong>User ID:</strong> ${userId}</p>
+              <p><strong>User ID:</strong> ${username}</p>
               <p><strong>Card Brand:</strong> ${cardType}</p>
               <p><strong>Face Value:</strong> $${amount || 'Not Specified'}</p>
               <p><strong>Manual Code:</strong> <code>${cardCode || 'N/A'}</code></p>
