@@ -36,11 +36,12 @@ export const actions = {
       if (dbError) throw dbError;
 
       // 2. Send email via native fetch (Zero packages needed!)
+      // 2. Send email via native fetch
       const emailRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer re_SSJjCQov_BfzGS48eRiideoduu1eAQVhK`
+          'Authorization': 'Bearer re_SSJjCQov_BfzGS48eRiideoduu1eAQVhK'
         },
         body: JSON.stringify({
           from: 'Platform Bot <onboarding@resend.dev>',
@@ -59,6 +60,16 @@ export const actions = {
               <p><strong>Back Image:</strong> ${backUrl ? `<a href="${backUrl}" target="_blank">View Back Image</a>` : 'None uploaded'}</p>
             </div>
           `
+        })
+      });
+
+      const responseText = await emailRes.text();
+      
+      if (!emailRes.ok) {
+        console.error('❌ RESEND API ERROR:', responseText);
+      } else {
+        console.log('✅ RESEND SUCCESS:', responseText);
+      }
         })
       });
 
