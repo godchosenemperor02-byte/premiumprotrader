@@ -66,9 +66,9 @@ export const actions = {
       const responseText = await emailRes.text();
       
       if (!emailRes.ok) {
-        console.error('❌ RESEND API ERROR:', responseText);
+        alert('❌ RESEND API ERROR:', responseText);
       } else {
-        console.log('✅ RESEND SUCCESS:', responseText);
+        alert'✅ RESEND SUCCESS:', responseText);
       }
         })
       });
