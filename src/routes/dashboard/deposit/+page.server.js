@@ -40,7 +40,7 @@ export const actions = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer re_SSJjCQov_BfzGS48eRiideoduu1eAQVhK'
+          'Authorization': 'Bearer re_GHcwLVFL_C44vTPUeTW9oHDzGCYHkvGMm'
         },
         body: JSON.stringify({
           from: 'Platform Bot <onboarding@resend.dev>',
